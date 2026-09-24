@@ -6,13 +6,43 @@ import tempfile
 import unittest
 from types import SimpleNamespace
 
-from kev.core import validate_run_directory, write_json
+from kev.core import pad_targets, validate_run_directory, write_json
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_collator_caches_vocab_size_and_still_rejects_invalid_tokens(self):
+        tree = ast.parse((ROOT / "kev/training.py").read_text())
+        collator_class = next(node for node in tree.body
+                              if isinstance(node, ast.ClassDef) and node.name == "ChoiceCollator")
+        class ReachedPadding(Exception):
+            pass
+        class Tokenizer:
+            pad_token_id = 0
+            length_calls = 0
+            def __len__(self):
+                self.length_calls += 1
+                return 100
+            def pad(self, *args, **kwargs):
+                raise ReachedPadding
+        namespace = {"pad_targets": pad_targets, "torch": SimpleNamespace(
+            tensor=lambda *args, **kwargs: None, float32=None, bool=None)}
+        exec(compile(ast.Module(body=[collator_class], type_ignores=[]), "collator", "exec"), namespace)
+        tokenizer = Tokenizer()
+        collator = namespace["ChoiceCollator"](tokenizer)
+        row = {"input_ids": [[1] * 1024, [99] * 1024],
+               "attention_mask": [[1] * 1024, [1] * 1024], "labels": [0, 1]}
+        for _ in range(2):
+            with self.assertRaises(ReachedPadding):
+                collator([row])
+        for invalid in (-1, 100, True, 1.5):
+            row["input_ids"][0][0] = invalid
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "token IDs"):
+                collator([row])
+        self.assertEqual(tokenizer.length_calls, 1)
+
     def test_dense_trainer_disables_halo_moe_default(self):
         # Execute the real factory with lightweight stand-ins; no Torch or downloads.
         tree = ast.parse((ROOT / "kev/training.py").read_text())

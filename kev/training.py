@@ -28,6 +28,8 @@ class ChoiceCollator:
         if tokenizer.pad_token_id is None:
             raise ValueError("The tokenizer must define a pad token.")
         self.tokenizer = tokenizer
+        # len(tokenizer) can rebuild the full vocabulary; never call it per token.
+        self.vocab_size = len(tokenizer)
         self.max_length = max_length
         self.max_candidates = max_candidates
 
@@ -48,7 +50,7 @@ class ChoiceCollator:
             for j, (ids, mask) in enumerate(zip(row["input_ids"], row["attention_mask"], strict=True)):
                 if not 1 <= len(ids) <= self.max_length or len(ids) != len(mask):
                     raise ValueError("Each candidate needs equal, nonempty token/mask lengths within max_length.")
-                if any(not isinstance(x, int) or isinstance(x, bool) or not 0 <= x < len(self.tokenizer) for x in ids):
+                if any(not isinstance(x, int) or isinstance(x, bool) or not 0 <= x < self.vocab_size for x in ids):
                     raise ValueError("Candidate token IDs must be integers within the tokenizer vocabulary.")
                 if any(x not in (0, 1) for x in mask) or not any(mask):
                     raise ValueError("Each attention mask must contain only zero/one and at least one real token.")
