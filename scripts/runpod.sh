@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMAND="${1:-help}"
+if (($#)); then shift; fi
+
+usage() {
+  cat <<'EOF'
+Usage: bash scripts/runpod.sh COMMAND [arguments]
+  setup                         Validate the pod image and pin Halo (no training)
+  prepare                       Download, adapt, split, and tokenize the selected data
+  train [trainer arguments]     Train through Halo (pass --resume-from-checkpoint PATH to resume)
+  resume CHECKPOINT             Resume the selected run without replacing it
+  calibrate                     Fit temperature on the separate calibration split
+  evaluate                      Write held-out test metrics to RUN_DIR/evaluation.json
+  predict [INPUT.json|-]         Read a request (defaults to examples/request.json)
+  smoke                         Setup and run every stage with the three-step smoke profile
+  all                           Setup and run every stage with the training profile
+
+Environment: KEV_WORKDIR=/workspace/kev-run; KEV_RUN_NAME=demo (smoke: smoke).
+KEV_CONFIG may select a different config file. Existing data/runs are not overwritten.
+Run inside a GPU RunPod using the documented Halo image, not on your local computer.
+EOF
+}
+
+case "$COMMAND" in
+  help|-h|--help) usage; exit 0 ;;
+  setup|prepare|train|resume|calibrate|evaluate|predict|smoke|all) ;;
+  *) usage >&2; exit 2 ;;
+esac
+
+WORKDIR="${KEV_WORKDIR:-/workspace/kev-run}"
+RUN_NAME="${KEV_RUN_NAME:-demo}"
+CONFIG="${KEV_CONFIG:-$REPO_ROOT/configs/train.yaml}"
+if [[ "$COMMAND" == smoke ]]; then
+  RUN_NAME="${KEV_RUN_NAME:-smoke}"
+  CONFIG="${KEV_CONFIG:-$REPO_ROOT/configs/smoke.yaml}"
+fi
+[[ "$WORKDIR" == /* ]] || { echo 'KEV_WORKDIR must be absolute.' >&2; exit 2; }
+[[ "$RUN_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || { echo 'KEV_RUN_NAME must be a simple directory name.' >&2; exit 2; }
+[[ "$CONFIG" == /* ]] || CONFIG="$REPO_ROOT/$CONFIG"
+[[ -f "$CONFIG" ]] || { echo "Config not found: $CONFIG" >&2; exit 2; }
+
+HALO_REVISION=ffc9d46290b62e61150568f3b66b0b1f900b2598
+HALO_ROOT="$WORKDIR/halo"
+DATA_DIR="$WORKDIR/data/$RUN_NAME"
+RUN_DIR="$WORKDIR/runs/$RUN_NAME"
+export HF_HOME="$WORKDIR/hf-cache"
+export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export KEV_WORKDIR="$WORKDIR"
+export PYTHONPATH="$HALO_ROOT:$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+export TOKENIZERS_PARALLELISM=false
+export PYTHONDONTWRITEBYTECODE=1
+cd "$REPO_ROOT"
+
+runtime() {
+  python "$REPO_ROOT/scripts/preflight.py" --runtime-only >&2
+}
+
+verify_halo() {
+  [[ -d "$HALO_ROOT/.git" ]] || { echo 'Run setup first: the pinned Halo checkout is missing.' >&2; exit 1; }
+  [[ "$(git -C "$HALO_ROOT" rev-parse HEAD)" == "$HALO_REVISION" ]] || { echo 'Halo revision differs from the required pin; use a new KEV_WORKDIR.' >&2; exit 1; }
+  git -C "$HALO_ROOT" diff --quiet --ignore-submodules -- || { echo 'Halo has tracked modifications; use a clean checkout.' >&2; exit 1; }
+  git -C "$HALO_ROOT" diff --cached --quiet --ignore-submodules -- || { echo 'Halo has staged modifications; use a clean checkout.' >&2; exit 1; }
+}
+
+setup() {
+  runtime
+  command -v git >/dev/null || { echo 'git is missing from the pod image.' >&2; exit 1; }
+  if [[ ! -e "$HALO_ROOT" ]]; then
+    mkdir -p "$WORKDIR"
+    git clone --filter=blob:none --no-checkout https://github.com/whitecircle/halo.git "$HALO_ROOT"
+    git -C "$HALO_ROOT" checkout --detach "$HALO_REVISION"
+  fi
+  verify_halo
+  python "$REPO_ROOT/scripts/preflight.py" >&2
+}
+
+prepare() {
+  runtime
+  [[ ! -e "$DATA_DIR" ]] || { echo "Data already exists: $DATA_DIR. Choose a new KEV_RUN_NAME." >&2; exit 1; }
+  python -m kev.prepare --config "$CONFIG" --output-dir "$DATA_DIR"
+}
+
+train() {
+  runtime
+  verify_halo
+  python "$REPO_ROOT/scripts/preflight.py" >&2
+  [[ -f "$DATA_DIR/train.jsonl" ]] || { echo 'Prepared data is missing; run prepare first.' >&2; exit 1; }
+  local resuming=false
+  local argument
+  for argument in "$@"; do
+    if [[ "$argument" == --resume-from-checkpoint || "$argument" == --resume-from-checkpoint=* ]]; then resuming=true; fi
+  done
+  if [[ -e "$RUN_DIR" && "$resuming" == false ]]; then
+    echo "Run already exists: $RUN_DIR. Use resume or choose a new KEV_RUN_NAME." >&2
+    exit 1
+  fi
+  python -m src.cli launch kev "$CONFIG" --root "$REPO_ROOT" --data-dir "$DATA_DIR" --output-dir "$RUN_DIR" "$@"
+}
+
+calibrate() {
+  runtime
+  python -m kev.calibrate --model "$RUN_DIR/final" --data "$DATA_DIR/calibration.jsonl"
+}
+
+evaluate() {
+  runtime
+  [[ ! -e "$RUN_DIR/evaluation.json" ]] || { echo 'evaluation.json already exists; preserve or move it before another evaluation.' >&2; exit 1; }
+  python -m kev.evaluate --model "$RUN_DIR/final" --data "$DATA_DIR/test.jsonl" --output "$RUN_DIR/evaluation.json"
+}
+
+predict() {
+  runtime
+  python -m kev.inference --model "$RUN_DIR/final" --input "${1:-$REPO_ROOT/examples/request.json}"
+}
+
+case "$COMMAND" in
+  setup) setup ;;
+  prepare) prepare ;;
+  train) train "$@" ;;
+  resume)
+    [[ $# -ge 1 && -f "$1/trainer_state.json" ]] || { echo 'resume requires a checkpoint directory containing trainer_state.json.' >&2; exit 2; }
+    train --resume-from-checkpoint "$1" "${@:2}"
+    ;;
+  calibrate) calibrate ;;
+  evaluate) evaluate ;;
+  predict) predict "$@" ;;
+  smoke) setup; python "$REPO_ROOT/scripts/check_gpu.py"; prepare; train; calibrate; evaluate; predict ;;
+  all) setup; prepare; train; calibrate; evaluate; predict ;;
+esac

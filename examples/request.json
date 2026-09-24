@@ -1,0 +1,23 @@
+{
+  "state": "The customer writes: This is my third attempt to get help. The export button crashes every time, and I cannot finish my report. Please connect me to a person.",
+  "questions": {
+    "route": {
+      "type": "choice",
+      "instructions": "Which team should handle the customer's request?",
+      "criteria": {
+        "technical_support": "Troubleshoot broken product features",
+        "billing": "Handle payments and invoices",
+        "sales": "Help customers buy a new subscription"
+      }
+    },
+    "human_requested": {
+      "type": "noul",
+      "instructions": "Does the customer explicitly request a human?"
+    },
+    "frustration": {
+      "type": "score",
+      "instructions": "Rate the customer's frustration.",
+      "criteria": ["Calm", "Somewhat frustrated", "Very frustrated"]
+    }
+  }
+}

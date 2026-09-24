@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {"dataset": "tasksource/zero-shot-label-nli", "revision": "ee693dba923b5d5484aa9232b7357c5e45dd39b8", "adapter": "zero_shot", "aggregate": true, "configs": ["default"], "splits": {"train": "train", "validation": "validation", "test": "test"}},
+    {"dataset": "tasksource/tasksource-instruct-v0", "revision": "1dee7ed51b87880e37882c2cbed2d50bd114e0df", "adapter": "instruct", "aggregate": true, "configs": ["default"], "splits": {"train": "train", "validation": "validation", "test": "test"}},
+    {"dataset": "nyu-mll/multi_nli", "revision": "da70db2af9d09693783c3320c4249840212ee221", "adapter": "nli", "configs": ["default"], "splits": {"train": "train", "validation_matched": "validation", "validation_mismatched": "validation"}},
+    {"dataset": "facebook/anli", "revision": "8e4813d81f46d313dac7892e1c28076917cfcdf9", "adapter": "nli", "configs": ["plain_text"], "splits": {"train_r1": "train", "train_r2": "train", "train_r3": "train", "dev_r1": "validation", "dev_r2": "validation", "dev_r3": "validation", "test_r1": "test", "test_r2": "test", "test_r3": "test"}},
+    {"dataset": "tasksource/defeasible-nli", "revision": "7c4a57df9d8de5c36d4e9caa977907b5e8469c4f", "adapter": "defeasible", "configs": ["atomic", "snli", "social"], "splits": {"train": "train", "validation": "validation", "test": "test"}},
+    {"dataset": "tasksource/FOL-nli", "revision": "6b8a2ec01b226ed871fbde4677a31146ac5f370c", "adapter": "nli", "configs": ["default"], "splits": {"train": "train", "validation": "validation", "test": "test"}},
+    {"dataset": "tasksource/doc-nli", "revision": "9b32389b6e21e232b8114f259f762f91fb486aff", "adapter": "doc_nli", "configs": ["default"], "splits": {"train": "train", "validation": "validation", "test": "test"}},
+    {"dataset": "tasksource/bigbench", "revision": "210c156767d2f4f05d2f4fd0bb275017a67040fd", "adapter": "bigbench", "aggregate": true, "configs": "discover", "splits": {"train": "train", "validation": "validation"}},
+    {"dataset": "Rowan/hellaswag", "revision": "218ec52e09a7e7462a5400043bb9a69a41d06b76", "adapter": "hellaswag", "configs": ["default"], "splits": {"train": "train", "validation": "validation"}, "excluded_splits": {"test": "Labels are hidden (empty strings)."}},
+    {"dataset": "google/boolq", "revision": "35b264d03638db9f4ce671b711558bf7ff0f80d5", "adapter": "boolq", "configs": ["default"], "splits": {"train": "train", "validation": "validation"}}
+  ],
+  "instruct_allowlist": ["yelp_review_full/yelp_review_full", "tweet_eval/sentiment"],
+  "notes": [
+    "Native source families override their zero-shot recasts; instruct uses only its two curated rating/sentiment tasks.",
+    "BIG-bench uses structured nonnegative multiple-choice scores, including multiple positive answers; open-ended and uninformative rows are counted and dropped.",
+    "Validation is split 50/50 into validation/calibration when a native labeled test exists, otherwise 50/25/25 into validation/calibration/test. Groups use stable content hashes.",
+    "Caps are maxima; task caps, overlap removal and overlength filtering can lower final counts."
+  ]
+}

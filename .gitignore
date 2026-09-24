@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.venv/
+.cache/
+data/
+runs/
+outputs/
+*.safetensors
+*.bin
+*.pt
+*.parquet
