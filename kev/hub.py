@@ -92,6 +92,14 @@ def verify_bundle(data_dir):
     return manifest
 
 
+def validate_training_data(data_dir, config):
+    """Check compatibility and, for published data, integrity before model loading."""
+    manifest = validate_dataset(data_dir, config)
+    if (Path(data_dir) / "bundle.json").exists():
+        verify_bundle(data_dir)
+    return manifest
+
+
 def push(data_dir, repo_id):
     root = Path(data_dir)
     build_bundle(root)

@@ -4,6 +4,8 @@ import json
 import math
 import os
 import sys
+import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -188,6 +190,19 @@ def write_json(path, value):
     temporary.replace(path)
 
 
+@contextmanager
+def staged_export(destination):
+    """Publish final/ only after weights, tokenizer, and metadata are complete."""
+    destination = Path(destination)
+    if destination.exists():
+        raise FileExistsError(f"Export already exists: {destination}")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".export-", dir=destination.parent) as temporary:
+        staging = Path(temporary)
+        yield staging
+        staging.rename(destination)
+
+
 def validate_run_directory(output_dir, config, provenance, resume=None):
     """Resume interrupted runs only, retaining completed exports and their reports."""
     output = Path(output_dir).resolve()
@@ -207,6 +222,17 @@ def validate_run_directory(output_dir, config, provenance, resume=None):
     fields = ("model_name_or_path", "model_revision", "max_length", "max_candidates", "seed")
     if any(previous_config.get(key) != config.get(key) for key in fields):
         raise ValueError("The resumed run uses a different model, input format, or seed")
+    # Trainer uses these settings to skip consumed batches and restore its schedule.
+    # A checkpoint resumes an interrupted run; it is not a new training recipe.
+    training_fields = (
+        "per_device_train_batch_size", "gradient_accumulation_steps", "dataloader_drop_last",
+        "num_train_epochs", "max_steps", "learning_rate", "weight_decay",
+        "warmup_ratio", "warmup_steps", "lr_scheduler_type", "lr_scheduler_kwargs",
+        "adam_beta1", "adam_beta2", "adam_epsilon", "max_grad_norm", "bf16", "fp16",
+    )
+    changed = [key for key in training_fields if previous_config.get(key) != config.get(key)]
+    if changed:
+        raise ValueError("Resume requires the original training settings; changed: " + ", ".join(changed))
     if load_config(output / "provenance.json") != provenance:
         raise ValueError("The resumed run uses different prepared data")
     return str(checkpoint)

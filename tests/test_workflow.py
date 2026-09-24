@@ -79,6 +79,15 @@ if os.environ.get("TEST_REJECT_VALIDATE") and "validate" in sys.argv:
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(any("src.cli" in call["args"] for call in calls))
 
+    def test_check_run_uses_isolated_outputs_and_existing_data(self):
+        result, calls = self.run_stage("check-run")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls[-1]["args"], [str(ROOT / "scripts/check_run.py"),
+                         "--config", self.env["KEV_CONFIG"],
+                         "--data-dir", self.env["KEV_DATA_DIR"],
+                         "--output-dir", str(self.base / "checks/experiment")])
+        self.assertFalse(any("kev.prepare" in call["args"] or "src.cli" in call["args"] for call in calls))
+
     def test_prepare_preserves_existing_data_and_transfer_requires_arguments(self):
         Path(self.env["KEV_DATA_DIR"]).mkdir()
         result, calls = self.run_stage("prepare")

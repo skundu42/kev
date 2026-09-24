@@ -55,6 +55,19 @@ bash scripts/runpod.sh setup &&
 
 `pull-data` downloads only the prepared artifact at the specified commit, checks its file hashes and row counts, and records the Hub revision in `hub.json`. Interrupted transfers can resume; requesting the same downloaded revision reuses it, while other existing output directories are protected. `fit` checks the GPU environment, validates the prepared files and their compatibility with the training config, then runs **train → calibrate → evaluate → predict**. It never prepares or rescans source datasets. The base model weights are downloaded on the GPU pod when training starts. The final model is saved in `/workspace/kev-run/runs/demo/final/`.
 
+Before committing to a long run, run the real-model check on an **idle GPU** with the same prepared data:
+
+```bash
+export KEV_DATA_DIR=/workspace/kev-run/data/mixture-v1
+KEV_RUN_NAME="readiness-$(date +%Y%m%d-%H%M%S)" bash scripts/runpod.sh check-run
+```
+
+`check-run` verifies dataset checksums, scans the prepared training/validation files for the longest row at each candidate count, and copies a small test subset. It never repeats source preparation. With the default batch size 1 and accumulation 32, it trains 32 decisions for three complete passes, exercising the largest actual shapes again after Adam state allocation. It retains the configured BF16, gradient checkpointing, token and candidate limits. It then resumes a real-model checkpoint and runs native export reload, calibration, evaluation, and choice/noul/score prediction. With larger batch sizes, this cannot cover every possible mixed-batch padding combination.
+
+Read `checks/<name>/readiness.json`: only `status: passed` means every stage finished. It records timings, extreme shapes and peak allocator VRAM; these are software checks, not model-quality metrics or a full-run ETA. The check has its own output directory and preserves existing training runs. It rejects an already-busy GPU. Reserve roughly 20 GB of additional disk space for its full-model checkpoints and two exports. Do not run it alongside an existing training job; stop only after securing a checkpoint if you need to check an ongoing run.
+
+The new check has been tested with offline command mocks; real GPU execution must happen on the pod. A pass reduces the risk of startup, memory, checkpoint and export failures but cannot guarantee an uninterrupted long run.
+
 The training config must match the prepared model/tokenizer identity and revision, token limit, and candidate limit. Training settings such as batch size and learning rate can change without preparing again. Source caps, split seed, and other preparation settings are recorded in the artifact's manifest; changing them in a training config does not alter already prepared data. Keep the pinned dataset revision to reproduce the same training inputs.
 
 `setup` checks Linux, Python 3.12, package versions and imports, then runs a small BF16 SDPA forward/backward pass on the GPU. It clones Halo into `/workspace/kev-run/halo`, checks out `ffc9d46290b62e61150568f3b66b0b1f900b2598`, and refuses a different revision or tracked modifications. This checkout remains available even when the volume hides the image's bundled `/workspace` contents. All commands resolve paths from the script location and configure imports themselves.
@@ -78,6 +91,8 @@ bash scripts/runpod.sh train --resume-from-checkpoint /workspace/kev-run/runs/de
 ```
 
 `train` runs training only; `fit` runs training and the following calibration/evaluation/prediction stages. Resume is for interrupted training and requires a checkpoint inside the selected run directory with matching data provenance. After resumed training succeeds, run `calibrate`, `evaluate`, and `predict` individually. Completed `final/` exports and evaluation reports are protected; start a fresh run for a new experiment.
+
+Training rechecks bundled dataset hashes before loading the model. Resume also requires the original batch, accumulation, precision, optimizer and scheduler settings so consumed-example positions and optimizer state stay consistent. Nonfinite logged loss, gradient norm or validation loss stops the run. Exports are assembled in a temporary sibling directory and published as `final/` only when weights, tokenizer and inference metadata are complete, so a failed export does not block checkpoint recovery.
 
 The original single-pod commands remain available for convenience:
 

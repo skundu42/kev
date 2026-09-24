@@ -13,6 +13,7 @@ Usage: bash scripts/runpod.sh COMMAND [arguments]
   push-data REPO_ID              Upload complete prepared data to a private HF dataset repo
   pull-data REPO_ID REVISION     Download prepared data at an exact Hub commit SHA
   setup                         Validate the pod image and pin Halo (no training)
+  check-run                     Check real-model training/resume/export on prepared data
   fit                           Train, calibrate, evaluate, and predict from existing data
   train [trainer arguments]     Train through Halo (pass --resume-from-checkpoint PATH to resume)
   resume CHECKPOINT             Resume the selected run without replacing it
@@ -31,7 +32,7 @@ EOF
 
 case "$COMMAND" in
   help|-h|--help) usage; exit 0 ;;
-  setup-data|prepare|push-data|pull-data|setup|fit|train|resume|calibrate|evaluate|predict|smoke|all) ;;
+  setup-data|prepare|push-data|pull-data|setup|check-run|fit|train|resume|calibrate|evaluate|predict|smoke|all) ;;
   *) usage >&2; exit 2 ;;
 esac
 
@@ -137,6 +138,10 @@ case "$COMMAND" in
     python -m kev.hub pull --data-dir "$DATA_DIR" --repo-id "$1" --revision "$2"
     ;;
   setup) setup ;;
+  check-run)
+    setup
+    python "$REPO_ROOT/scripts/check_run.py" --config "$CONFIG" --data-dir "$DATA_DIR" --output-dir "$WORKDIR/checks/$RUN_NAME"
+    ;;
   prepare) prepare ;;
   train) train "$@" ;;
   resume)

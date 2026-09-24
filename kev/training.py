@@ -9,14 +9,14 @@ from pathlib import Path
 
 import torch
 from datasets import load_dataset
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, set_seed
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, TrainerCallback, set_seed
 
 from src.configs.classification_config import ClassificationConfig
 from src.distributed.parallelism_config import ParallelismConfig
 from src.trainers.reward.classification import ClassificationTrainer
 
-from kev.core import load_config, pad_targets, require_cuda, validate_run_directory, write_json
-from kev.hub import validate_dataset
+from kev.core import load_config, pad_targets, require_cuda, staged_export, validate_run_directory, write_json
+from kev.hub import validate_training_data
 
 
 class ChoiceCollator:
@@ -100,6 +100,13 @@ class ChoiceTrainer(ClassificationTrainer):
         return inputs["attention_mask"].sum(-1).flatten()
 
 
+class FiniteMetricsCallback(TrainerCallback):
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        for name in ("loss", "grad_norm", "eval_loss"):
+            if name in (logs or {}) and not math.isfinite(float(logs[name])):
+                raise FloatingPointError(f"Nonfinite {name} at training step {state.global_step}; stopping.")
+
+
 def build_training_args(config, output_dir):
     accepted = {field.name for field in fields(ClassificationConfig)}
     values = {key: value for key, value in config.items() if key in accepted}
@@ -119,6 +126,7 @@ def build_training_args(config, output_dir):
         greater_is_better=False,
         load_best_model_at_end=True,
         use_liger_kernel=False,
+        logging_nan_inf_filter=False,
         optim="adamw_torch",
     )
     values.setdefault("eval_strategy", "steps")
@@ -147,6 +155,7 @@ def make_trainer(model, tokenizer, config, output_dir, train_dataset, eval_datas
             fp32_output_conversion=True,
         ),
         is_binary=False,
+        callbacks=[FiniteMetricsCallback()],
     )
 
 
@@ -159,7 +168,7 @@ def train(config_path, data_dir, output_dir, resume_from_checkpoint=None):
     if config.get("bf16", False) and not torch.cuda.is_bf16_supported():
         raise RuntimeError("This configuration requires a GPU with BF16 support.")
     data_dir, output_dir = Path(data_dir).resolve(), Path(output_dir).resolve()
-    provenance = validate_dataset(data_dir, config)
+    provenance = validate_training_data(data_dir, config)
     if (data_dir / "hub.json").is_file():
         provenance["prepared_dataset_hub"] = load_config(data_dir / "hub.json")
     resume_from_checkpoint = validate_run_directory(output_dir, config, provenance, resume_from_checkpoint)
@@ -195,16 +204,17 @@ def train(config_path, data_dir, output_dir, resume_from_checkpoint=None):
         "peak_reserved_gib": torch.cuda.max_memory_reserved(0) / 2**30,
         "note": "PyTorch allocator peaks during training and validation; excludes other processes and some CUDA allocations.",
     })
-    final_dir = output_dir / "final"
-    trainer.save_model(str(final_dir))
-    tokenizer.save_pretrained(final_dir)
     trainer.save_state()
     trainer.save_metrics("train", result.metrics)
     trainer.save_metrics("eval", metrics)
     metadata = {key: config[key] for key in ("max_length", "max_candidates", "model_name_or_path", "model_revision")}
     metadata["temperature"] = 1.0
-    write_json(final_dir / "kev_config.json", metadata)
-    write_json(final_dir / "training_config.json", config)
-    write_json(final_dir / "provenance.json", provenance)
+    final_dir = output_dir / "final"
+    with staged_export(final_dir) as staging:
+        trainer.save_model(str(staging))
+        tokenizer.save_pretrained(staging)
+        write_json(staging / "kev_config.json", metadata)
+        write_json(staging / "training_config.json", config)
+        write_json(staging / "provenance.json", provenance)
     trainer.cleanup_ep()
     print(f"Saved model and tokenizer to {final_dir}")

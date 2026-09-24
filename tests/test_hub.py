@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 from kev.core import load_config, write_json
 from kev.hub import (
     HUB_FILES, MODEL_FIELDS, PAYLOAD_FILES, SPLITS, build_bundle, pull, push,
-    validate_dataset, verify_bundle,
+    validate_dataset, validate_training_data, verify_bundle,
 )
 
 
@@ -94,6 +94,18 @@ class HubTests(unittest.TestCase):
             build_bundle(self.data)
         with self.assertRaisesRegex(ValueError, "Checksum"):
             verify_bundle(self.data)
+
+    def test_training_checks_bundled_data_and_accepts_original_preparations(self):
+        self.assertEqual(validate_training_data(self.data, self.config), self.manifest)
+        build_bundle(self.data)
+        self.assertEqual(validate_training_data(self.data, self.config), self.manifest)
+        with self.assertRaisesRegex(ValueError, "differ"):
+            validate_training_data(self.data, {**self.config, "max_length": 512})
+        # Keep file size/row count identical: a metadata-only check misses this.
+        path = self.data / "train.jsonl"
+        path.write_text(path.read_text().replace("synthetic example", "different example"))
+        with self.assertRaisesRegex(ValueError, "Checksum"):
+            validate_training_data(self.data, self.config)
 
     def test_push_is_private_and_uploads_only_the_bundle(self):
         (self.data / "secret.txt").write_text("must not upload")

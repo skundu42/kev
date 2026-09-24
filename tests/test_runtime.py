@@ -1,18 +1,51 @@
 import ast
 import importlib.util
 import json
+import math
 from pathlib import Path
 import tempfile
 import unittest
 from types import SimpleNamespace
 
-from kev.core import pad_targets, validate_run_directory, write_json
+from kev.core import pad_targets, staged_export, validate_run_directory, write_json
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_interrupted_export_does_not_publish_final_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            final = Path(directory) / "final"
+            with self.assertRaisesRegex(RuntimeError, "interrupted"):
+                with staged_export(final) as staging:
+                    (staging / "weights.fixture").write_text("synthetic")
+                    self.assertFalse(final.exists())
+                    raise RuntimeError("interrupted")
+            self.assertFalse(final.exists())
+            self.assertEqual(list(Path(directory).iterdir()), [])
+            with staged_export(final) as staging:
+                write_json(staging / "kev_config.json", {"temperature": 1.0})
+                self.assertFalse(final.exists())
+            self.assertTrue((final / "kev_config.json").is_file())
+            with self.assertRaises(FileExistsError):
+                with staged_export(final):
+                    self.fail("Completed export was overwritten")
+
+    def test_nonfinite_training_metrics_stop_the_run(self):
+        tree = ast.parse((ROOT / "kev/training.py").read_text())
+        callback_class = next(node for node in tree.body
+                              if isinstance(node, ast.ClassDef) and node.name == "FiniteMetricsCallback")
+        namespace = {"TrainerCallback": object, "math": math}
+        exec(compile(ast.Module(body=[callback_class], type_ignores=[]), "metrics_callback", "exec"), namespace)
+        callback = namespace["FiniteMetricsCallback"]()
+        state = SimpleNamespace(global_step=10)
+        callback.on_log(None, state, None, logs={"loss": 0.2, "grad_norm": 1.0, "eval_loss": 0.3})
+        for metric in ("loss", "grad_norm", "eval_loss"):
+            for value in (float("nan"), float("inf")):
+                with self.subTest(metric=metric), self.assertRaisesRegex(FloatingPointError, "step 10"):
+                    callback.on_log(None, state, None, logs={metric: value})
+
     def test_collator_caches_vocab_size_and_still_rejects_invalid_tokens(self):
         tree = ast.parse((ROOT / "kev/training.py").read_text())
         collator_class = next(node for node in tree.body
@@ -57,6 +90,7 @@ class RuntimeTests(unittest.TestCase):
             "ChoiceTrainer": trainer, "ParallelismConfig": parallelism_config,
             "build_training_args": lambda *args: None,
             "ChoiceCollator": lambda *args: None,
+            "FiniteMetricsCallback": object,
         }
         exec(compile(ast.Module(body=[factory], type_ignores=[]), "training_factory", "exec"), namespace)
         namespace["make_trainer"](
@@ -97,6 +131,19 @@ class RuntimeTests(unittest.TestCase):
                 validate_run_directory(output, config, {**provenance, "changed": True}, checkpoint)
             with self.assertRaisesRegex(ValueError, "seed"):
                 validate_run_directory(output, {**config, "seed": 7}, provenance, checkpoint)
+            training_settings = {
+                "per_device_train_batch_size": 1, "gradient_accumulation_steps": 32,
+                "num_train_epochs": 1, "learning_rate": 2e-5, "weight_decay": 0.01,
+                "warmup_ratio": 0.03, "bf16": True,
+            }
+            training_config = {**config, **training_settings}
+            write_json(output / "training_config.json", training_config)
+            self.assertEqual(validate_run_directory(output, training_config, provenance, checkpoint), str(checkpoint.resolve()))
+            for key, value in training_settings.items():
+                changed = False if isinstance(value, bool) else value * 2
+                with self.subTest(key=key), self.assertRaisesRegex(ValueError, key):
+                    validate_run_directory(output, {**training_config, key: changed}, provenance, checkpoint)
+            write_json(output / "training_config.json", config)
             (output / "final").mkdir()
             with self.assertRaisesRegex(FileExistsError, "exported results"):
                 validate_run_directory(output, config, provenance, checkpoint)
