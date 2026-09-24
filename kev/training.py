@@ -140,7 +140,11 @@ def make_trainer(model, tokenizer, config, output_dir, train_dataset, eval_datas
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         data_collator=ChoiceCollator(tokenizer, config["max_length"], config["max_candidates"]),
-        parallelism_config=ParallelismConfig(bf16_optimizer=False, fp32_output_conversion=True),
+        parallelism_config=ParallelismConfig(
+            use_grouped_gemm=False,  # Halo defaults to MoE wrappers even on one GPU.
+            bf16_optimizer=False,
+            fp32_output_conversion=True,
+        ),
         is_binary=False,
     )
 

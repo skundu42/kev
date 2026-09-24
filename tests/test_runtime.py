@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 
 from kev.core import validate_run_directory, write_json
 
@@ -12,6 +13,27 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_dense_trainer_disables_halo_moe_default(self):
+        # Execute the real factory with lightweight stand-ins; no Torch or downloads.
+        tree = ast.parse((ROOT / "kev/training.py").read_text())
+        factory = next(node for node in tree.body
+                       if isinstance(node, ast.FunctionDef) and node.name == "make_trainer")
+        def parallelism_config(use_grouped_gemm=True, **kwargs):
+            return SimpleNamespace(needs_ep_wrappers=use_grouped_gemm, **kwargs)
+        def trainer(**kwargs):
+            self.assertFalse(kwargs["parallelism_config"].needs_ep_wrappers)
+            return kwargs
+        namespace = {
+            "ChoiceTrainer": trainer, "ParallelismConfig": parallelism_config,
+            "build_training_args": lambda *args: None,
+            "ChoiceCollator": lambda *args: None,
+        }
+        exec(compile(ast.Module(body=[factory], type_ignores=[]), "training_factory", "exec"), namespace)
+        namespace["make_trainer"](
+            SimpleNamespace(config=SimpleNamespace(num_labels=1)), None,
+            {"max_length": 1024, "max_candidates": 16}, "unused", [], [],
+        )
+
     def test_5090_smoke_matches_training_memory_settings(self):
         train = json.loads((ROOT / "configs/train.yaml").read_text())
         smoke = json.loads((ROOT / "configs/smoke.yaml").read_text())
