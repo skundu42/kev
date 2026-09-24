@@ -2,8 +2,6 @@
 
 Fine-tune [`jhu-clsp/ettin-encoder-400m`](https://huggingface.co/jhu-clsp/ettin-encoder-400m) into a Jev-like model that chooses among runtime criteria, estimates yes/no probabilities, and rates text on an ordered scale. Training runs through [Halo](https://github.com/whitecircle/halo), using its classification trainer with a custom grouped candidate loss.
 
-This is a supervised demonstration, not a reproduction of Jev's private training recipe or RLCD. It does not generate free-form answers. Prepare the dataset on a **remote CPU machine**, upload it to Hugging Face, and rent a GPU only when you are ready to train. Keep this local repository limited to code, configs, and offline checks; do not install training packages or download model weights, tokenizers, or datasets on your local computer.
-
 ## Prepare once on a CPU machine
 
 Use a remote Linux machine with Python 3.12, sufficient RAM and disk for preparation, and internet access. No CUDA, GPU, Halo checkout, Torch, or model weights are needed. Preparation downloads source data and the pinned tokenizer. Install the CPU dependencies into a separate virtual environment **on that remote machine**:
