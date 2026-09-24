@@ -147,10 +147,8 @@ class DataTests(unittest.TestCase):
 
     def test_preparation_pipeline_with_handwritten_sources_and_fake_tokenizer(self):
         """Exercise partitions, coverage, dedup, and files without any HF code."""
-        calls = []
-
         def load_dataset(source, subset, split, revision, streaming):
-            self.assertTrue(calls and calls[0] == "cuda_guard")
+            self.assertNotIn("torch", sys.modules)
             self.assertTrue(streaming)
             spec = next(spec for spec in SPECS if spec["dataset"] == source)
             self.assertEqual(revision, spec["revision"])
@@ -199,7 +197,7 @@ class DataTests(unittest.TestCase):
                   "scan_limit_per_split": 32}
         with tempfile.TemporaryDirectory() as directory, patch.dict(sys.modules, {
             "datasets": fake_datasets, "transformers": types.SimpleNamespace(AutoTokenizer=Tokenizer),
-        }), patch("kev.prepare.require_cuda", side_effect=lambda: calls.append("cuda_guard")), patch("builtins.print"):
+        }), patch("kev.core.require_cuda", side_effect=AssertionError("CPU preparation used CUDA")), patch("builtins.print"):
             prepare(config, directory)
             manifest = json.loads((Path(directory) / "manifest.json").read_text())
             self.assertEqual(manifest["status"], "complete")

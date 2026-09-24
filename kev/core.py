@@ -16,7 +16,7 @@ def load_config(path):
 
 
 def require_cuda():
-    """Guard every download/model command before importing Hugging Face libraries."""
+    """Guard GPU model commands before importing Hugging Face libraries."""
     if sys.platform != "linux":
         raise RuntimeError("Run this command inside the Runpod Halo GPU container, not locally.")
     import torch
@@ -24,8 +24,8 @@ def require_cuda():
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is unavailable. Run this command on the GPU pod.")
     root = Path(os.environ.get("KEV_WORKDIR", "/workspace/kev-run"))
-    os.environ.setdefault("HF_HOME", str(root / "hf"))
-    os.environ.setdefault("HF_DATASETS_CACHE", str(root / "hf" / "datasets"))
+    os.environ.setdefault("HF_HOME", str(root / "hf-cache"))
+    os.environ.setdefault("HF_DATASETS_CACHE", str(Path(os.environ["HF_HOME"]) / "datasets"))
     return torch.device("cuda")
 
 

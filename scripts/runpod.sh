@@ -8,8 +8,12 @@ if (($#)); then shift; fi
 usage() {
   cat <<'EOF'
 Usage: bash scripts/runpod.sh COMMAND [arguments]
+  setup-data                    Check CPU preparation dependencies (no installation)
+  prepare                       Prepare data on a CPU machine; no CUDA or Halo needed
+  push-data REPO_ID              Upload complete prepared data to a private HF dataset repo
+  pull-data REPO_ID REVISION     Download prepared data at an exact Hub commit SHA
   setup                         Validate the pod image and pin Halo (no training)
-  prepare                       Download, adapt, split, and tokenize the selected data
+  fit                           Train, calibrate, evaluate, and predict from existing data
   train [trainer arguments]     Train through Halo (pass --resume-from-checkpoint PATH to resume)
   resume CHECKPOINT             Resume the selected run without replacing it
   calibrate                     Fit temperature on the separate calibration split
@@ -19,14 +23,15 @@ Usage: bash scripts/runpod.sh COMMAND [arguments]
   all                           Setup and run every stage with the training profile
 
 Environment: KEV_WORKDIR=/workspace/kev-run; KEV_RUN_NAME=demo (smoke: smoke).
-KEV_CONFIG may select a different config file. Existing data/runs are not overwritten.
-Run inside a GPU RunPod using the documented Halo image, not on your local computer.
+KEV_DATA_DIR overrides the prepared data path independently of the run name.
+KEV_CONFIG may select a different config file; HF_HOME and HF_DATASETS_CACHE are respected.
+Existing data/runs are not overwritten. Prepare on a remote CPU machine; train on a GPU pod.
 EOF
 }
 
 case "$COMMAND" in
   help|-h|--help) usage; exit 0 ;;
-  setup|prepare|train|resume|calibrate|evaluate|predict|smoke|all) ;;
+  setup-data|prepare|push-data|pull-data|setup|fit|train|resume|calibrate|evaluate|predict|smoke|all) ;;
   *) usage >&2; exit 2 ;;
 esac
 
@@ -44,10 +49,11 @@ fi
 
 HALO_REVISION=ffc9d46290b62e61150568f3b66b0b1f900b2598
 HALO_ROOT="$WORKDIR/halo"
-DATA_DIR="$WORKDIR/data/$RUN_NAME"
+DATA_DIR="${KEV_DATA_DIR:-$WORKDIR/data/$RUN_NAME}"
+[[ "$DATA_DIR" == /* ]] || { echo 'KEV_DATA_DIR must be absolute.' >&2; exit 2; }
 RUN_DIR="$WORKDIR/runs/$RUN_NAME"
-export HF_HOME="$WORKDIR/hf-cache"
-export HF_DATASETS_CACHE="$HF_HOME/datasets"
+export HF_HOME="${HF_HOME:-$WORKDIR/hf-cache}"
+export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-$HF_HOME/datasets}"
 export KEV_WORKDIR="$WORKDIR"
 export PYTHONPATH="$HALO_ROOT:$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
 export TOKENIZERS_PARALLELISM=false
@@ -56,6 +62,10 @@ cd "$REPO_ROOT"
 
 runtime() {
   python "$REPO_ROOT/scripts/preflight.py" --runtime-only >&2
+}
+
+setup_data() {
+  python "$REPO_ROOT/scripts/preflight_data.py" >&2
 }
 
 verify_halo() {
@@ -78,8 +88,8 @@ setup() {
 }
 
 prepare() {
-  runtime
-  [[ ! -e "$DATA_DIR" ]] || { echo "Data already exists: $DATA_DIR. Choose a new KEV_RUN_NAME." >&2; exit 1; }
+  setup_data
+  [[ ! -e "$DATA_DIR" ]] || { echo "Data already exists: $DATA_DIR. Choose a new KEV_DATA_DIR or KEV_RUN_NAME." >&2; exit 1; }
   python -m kev.prepare --config "$CONFIG" --output-dir "$DATA_DIR"
 }
 
@@ -87,7 +97,7 @@ train() {
   runtime
   verify_halo
   python "$REPO_ROOT/scripts/preflight.py" >&2
-  [[ -f "$DATA_DIR/train.jsonl" ]] || { echo 'Prepared data is missing; run prepare first.' >&2; exit 1; }
+  python -m kev.hub validate --data-dir "$DATA_DIR" --config "$CONFIG"
   local resuming=false
   local argument
   for argument in "$@"; do
@@ -117,6 +127,15 @@ predict() {
 }
 
 case "$COMMAND" in
+  setup-data) setup_data ;;
+  push-data)
+    [[ $# -eq 1 ]] || { echo 'Usage: push-data OWNER/DATASET' >&2; exit 2; }
+    python -m kev.hub push --data-dir "$DATA_DIR" --repo-id "$1"
+    ;;
+  pull-data)
+    [[ $# -eq 2 ]] || { echo 'Usage: pull-data OWNER/DATASET COMMIT_SHA' >&2; exit 2; }
+    python -m kev.hub pull --data-dir "$DATA_DIR" --repo-id "$1" --revision "$2"
+    ;;
   setup) setup ;;
   prepare) prepare ;;
   train) train "$@" ;;
@@ -127,6 +146,7 @@ case "$COMMAND" in
   calibrate) calibrate ;;
   evaluate) evaluate ;;
   predict) predict "$@" ;;
+  fit) setup; train; calibrate; evaluate; predict ;;
   smoke) setup; python "$REPO_ROOT/scripts/check_gpu.py"; prepare; train; calibrate; evaluate; predict ;;
   all) setup; prepare; train; calibrate; evaluate; predict ;;
 esac

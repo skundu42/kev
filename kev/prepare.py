@@ -1,4 +1,4 @@
-"""Prepare pinned datasets on the GPU pod; importing this module is offline-safe."""
+"""Prepare pinned datasets on a CPU worker; importing this module is offline-safe."""
 
 import argparse
 from collections import Counter, defaultdict
@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import sqlite3
 
-from .core import load_config, require_cuda, tokenize_row, validate_row, write_json
+from .core import load_config, tokenize_row, validate_row, write_json
 from .data import (SPLIT_PRIORITY, SkipRow, adapt_row, content_key, digest,
                    split_for)
 
@@ -47,7 +47,7 @@ def positive_int(config, key):
 
 
 def prepare(config, output_dir):
-    require_cuda()  # This precedes every Hugging Face import or network operation.
+    # AutoTokenizer works in a CPU environment without installing Torch.
     from datasets import get_dataset_config_names, load_dataset
     from transformers import AutoTokenizer
 
@@ -86,6 +86,7 @@ def prepare(config, output_dir):
         resolved.append(spec)
     manifest = {
         "status": "preparing", "config": config, "sources": resolved,
+        "format_version": 1,
         "seed": seed, "scan_limit_per_split": scan_limit,
         "smoke_prefix_scan": scan_limit is not None,
         "partition_policy": "Native test retained; native validation: 50/50 validation/calibration with test, otherwise 50/25/25 validation/calibration/test.",

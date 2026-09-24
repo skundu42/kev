@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import math
 import os
-import shutil
 from dataclasses import fields
 from pathlib import Path
 
@@ -18,6 +16,7 @@ from src.distributed.parallelism_config import ParallelismConfig
 from src.trainers.reward.classification import ClassificationTrainer
 
 from kev.core import load_config, pad_targets, require_cuda, validate_run_directory, write_json
+from kev.hub import validate_dataset
 
 
 class ChoiceCollator:
@@ -158,18 +157,9 @@ def train(config_path, data_dir, output_dir, resume_from_checkpoint=None):
     if config.get("bf16", False) and not torch.cuda.is_bf16_supported():
         raise RuntimeError("This configuration requires a GPU with BF16 support.")
     data_dir, output_dir = Path(data_dir).resolve(), Path(output_dir).resolve()
-    manifest = data_dir / "manifest.json"
-    if not manifest.is_file():
-        raise FileNotFoundError(f"Missing prepared-data manifest: {manifest}")
-    provenance = json.loads(manifest.read_text())
-    if provenance.get("status") != "complete":
-        raise ValueError("Prepared data is incomplete; inspect manifest.json and rerun preparation.")
-    model_fields = ("model_name_or_path", "model_revision", "max_length", "max_candidates")
-    if any(provenance.get("config", {}).get(key) != config[key] for key in model_fields):
-        raise ValueError("Prepared data's tokenizer/model revision or length/candidate limits differ from this config.")
-    for split in ("train", "validation"):
-        if not (data_dir / f"{split}.jsonl").is_file():
-            raise FileNotFoundError(f"Prepared {split} split is missing from {data_dir}.")
+    provenance = validate_dataset(data_dir, config)
+    if (data_dir / "hub.json").is_file():
+        provenance["prepared_dataset_hub"] = load_config(data_dir / "hub.json")
     resume_from_checkpoint = validate_run_directory(output_dir, config, provenance, resume_from_checkpoint)
     set_seed(config["seed"])
     tokenizer = AutoTokenizer.from_pretrained(
@@ -213,6 +203,6 @@ def train(config_path, data_dir, output_dir, resume_from_checkpoint=None):
     metadata["temperature"] = 1.0
     write_json(final_dir / "kev_config.json", metadata)
     write_json(final_dir / "training_config.json", config)
-    shutil.copyfile(manifest, final_dir / "provenance.json")
+    write_json(final_dir / "provenance.json", provenance)
     trainer.cleanup_ep()
     print(f"Saved model and tokenizer to {final_dir}")
