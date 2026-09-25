@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from kev.calibrate import fit_temperature, log_loss
-from kev.core import answer, pad_targets, parse_questions, require_cuda, softmax, tokenize_row, validate_row
+from kev.core import InputTooLongError, answer, pad_targets, parse_questions, require_cuda, softmax, tokenize_row, validate_row
 from kev.evaluate import Metrics, evaluate
 
 
@@ -50,7 +50,7 @@ class CoreTests(unittest.TestCase):
         result = tokenize_row(example, FakeTokenizer(), 100)
         self.assertEqual(result["labels"], example["target"])
         self.assertEqual(len(result["input_ids"]), 3)
-        with self.assertRaisesRegex(ValueError, "overlength"):
+        with self.assertRaisesRegex(InputTooLongError, "overlength"):
             tokenize_row(example, FakeTokenizer(), 4)
 
     def test_all_question_types(self):

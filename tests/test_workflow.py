@@ -88,6 +88,14 @@ if os.environ.get("TEST_REJECT_VALIDATE") and "validate" in sys.argv:
                          "--output-dir", str(self.base / "checks/experiment")])
         self.assertFalse(any("kev.prepare" in call["args"] or "src.cli" in call["args"] for call in calls))
 
+    def test_serve_uses_local_export_without_halo_or_preparation(self):
+        result, calls = self.run_stage("serve", "--host", "0.0.0.0", "--port", "8000")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["args"], ["-m", "kev.serve", "--model",
+                         str(self.base / "runs/experiment/final"),
+                         "--host", "0.0.0.0", "--port", "8000"])
+
     def test_prepare_preserves_existing_data_and_transfer_requires_arguments(self):
         Path(self.env["KEV_DATA_DIR"]).mkdir()
         result, calls = self.run_stage("prepare")

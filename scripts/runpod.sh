@@ -20,6 +20,7 @@ Usage: bash scripts/runpod.sh COMMAND [arguments]
   calibrate                     Fit temperature on the separate calibration split
   evaluate                      Write held-out test metrics to RUN_DIR/evaluation.json
   predict [INPUT.json|-]         Read a request (defaults to examples/request.json)
+  serve [--host HOST --port N]    Serve RUN_DIR/final via authenticated HTTP (KEV_API_KEY)
   smoke                         Setup and run every stage with the three-step smoke profile
   all                           Setup and run every stage with the training profile
 
@@ -32,7 +33,7 @@ EOF
 
 case "$COMMAND" in
   help|-h|--help) usage; exit 0 ;;
-  setup-data|prepare|push-data|pull-data|setup|check-run|fit|train|resume|calibrate|evaluate|predict|smoke|all) ;;
+  setup-data|prepare|push-data|pull-data|setup|check-run|fit|train|resume|calibrate|evaluate|predict|serve|smoke|all) ;;
   *) usage >&2; exit 2 ;;
 esac
 
@@ -151,6 +152,7 @@ case "$COMMAND" in
   calibrate) calibrate ;;
   evaluate) evaluate ;;
   predict) predict "$@" ;;
+  serve) python -m kev.serve --model "$RUN_DIR/final" "$@" ;;
   fit) setup; train; calibrate; evaluate; predict ;;
   smoke) setup; python "$REPO_ROOT/scripts/check_gpu.py"; prepare; train; calibrate; evaluate; predict ;;
   all) setup; prepare; train; calibrate; evaluate; predict ;;

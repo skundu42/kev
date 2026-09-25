@@ -9,6 +9,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 
+class InputTooLongError(ValueError):
+    """A decision exceeds the configured token limit without truncation."""
+
+
 def load_config(path):
     # JSON is also YAML; keeping our configs in this subset needs no local PyYAML.
     config = json.loads(Path(path).read_text())
@@ -80,7 +84,7 @@ def tokenize_row(row, tokenizer, max_length=1024, max_candidates=16):
     encoded = tokenizer([prompt] * len(row["candidates"]), row["candidates"],
                         truncation=False, padding=False, return_token_type_ids=False)
     if any(len(ids) > max_length for ids in encoded["input_ids"]):
-        raise ValueError(f"overlength: decision exceeds {max_length} tokens; no input was truncated")
+        raise InputTooLongError(f"overlength: decision exceeds {max_length} tokens; no input was truncated")
     result = {key: encoded[key] for key in ("input_ids", "attention_mask")}
     if "target" in row:
         result["labels"] = list(row["target"])
