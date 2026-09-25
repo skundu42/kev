@@ -230,3 +230,46 @@ bash -n scripts/runpod.sh
 ```
 
 These exercise adapters, split/overlap logic, request validation, probability outputs, CPU/GPU command boundaries, and mocked Hub transfers with checksum and interruption checks. They do not download dependencies, weights, tokenizers, or data. Actual CPU package execution and Hub transfers must still be verified on the remote machines. `scripts/check_gpu.py` and the complete `smoke` command are the pod validation path. There is no UI, serving framework, RL environment, or local training environment to maintain.
+
+## Compare with Laya on the GPU pod
+
+The paired benchmark uses your prepared **test** partition and the English root checkpoint
+`convaiinnovations/laya`, pinned to `55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851`.
+It does not route to multilingual or typed-decisions variants. Run after training finishes,
+inside tmux on an idle GPU. Install only the pinned Laya runtime into a separate environment
+that reuses the Halo container's dependencies; do not replace Torch/CUDA:
+
+```bash
+cd /workspace/kev
+git pull --ff-only
+python -m venv --system-site-packages /workspace/kev-run/venv-compare
+source /workspace/kev-run/venv-compare/bin/activate
+python -m pip install --no-deps 'git+https://github.com/NandhaKishorM/laya.git@970dc8c5f63d7b886a68409493f37d569424f933'
+export HF_HOME=/workspace/kev-run/hf-cache
+export USE_TF=0
+export PYTHONUNBUFFERED=1
+python -m kev.compare \
+  --kev-model /workspace/kev-run/runs/train-20260924-185636/final \
+  --data /workspace/kev-run/data/mixture-v1/test.jsonl \
+  --per-source 100 \
+  --output-dir /workspace/kev-run/comparisons/laya-sample
+```
+
+The default sample selects up to 100 decisions per source deterministically. For the whole
+test set, use `--per-source 0` and a new output directory. Both models process identical rows
+sequentially on the same GPU. `comparison.json` includes per-source/per-kind accuracy, log loss,
+Brier score, ECE, ordinal MAE, synchronized single-request latency and peak allocated VRAM.
+`sample.jsonl` and per-model prediction files preserve the exact paired inputs and outputs.
+Existing output directories are protected; use a fresh directory after an interrupted run.
+
+This measures native deployed behavior: each model uses its shipped calibration, formatting,
+precision and limits. Kev has in-domain calibration; Laya's calibration and training overlap
+are not controlled. Laya's default English context/head budgets can discard state, instructions
+or options. The report counts affected rows and separately evaluates `shared_untruncated`
+for **both** models on the same unaffected subset. Kev rejects overlength input. Laya's public
+API rounds probabilities to four decimals; these are renormalized and zero probabilities use
+the existing evaluation log-loss floor of 1e-300. Thus log loss can be sensitive to rounding.
+The runtime's CPU fallback aborts the benchmark, rather than silently corrupting GPU timings.
+No model is recalibrated or trained on the test set. This is a comparison on Kev's dataset
+mixture, not proof of superiority on unseen task families. GPU execution remains unverified
+until you run it; local validation uses handwritten fixtures with network access blocked.
