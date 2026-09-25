@@ -4,6 +4,8 @@ A 400M-parameter encoder for decisions over text: choose between options, estima
 
 Kev fine-tunes [Ettin Encoder 400M](https://huggingface.co/jhu-clsp/ettin-encoder-400m) with [Halo](https://github.com/whitecircle/halo). This repository includes data preparation, training, calibration, evaluation, and inference through Python, a JSON CLI, or an authenticated HTTP API.
 
+**Hugging Face:** [Model weights](https://huggingface.co/skundu42/kev) · [Prepared dataset](https://huggingface.co/datasets/skundu42/kev-prepared)
+
 ## What it does
 
 Supply text and criteria at inference time; the model scores the candidates you provide.
