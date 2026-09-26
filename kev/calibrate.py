@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .core import load_config, write_json
 from .evaluate import file_sha256
+from .inference import DecisionModel, add_inference_arguments, inference_kwargs
 
 
 def log_loss(examples, temperature):
@@ -20,7 +21,7 @@ def log_loss(examples, temperature):
         peak = max(logits)
         scaled = [(x - peak) / temperature for x in logits]
         normalizer = math.log(sum(math.exp(x) for x in scaled))
-        total += normalizer - sum(y * x for y, x in zip(target, scaled))
+        total += normalizer - sum(y * x for y, x in zip(target, scaled, strict=True))
     return total / len(examples)
 
 
@@ -55,15 +56,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=True)
     parser.add_argument("--data", required=True)
+    add_inference_arguments(parser)
     args = parser.parse_args()
     if Path(args.data).name != "calibration.jsonl":
         parser.error("Use the prepared calibration.jsonl partition, not validation or test")
-    from .inference import DecisionModel
-
-    model = DecisionModel.from_pretrained(args.model)
+    model = DecisionModel.from_pretrained(args.model, **inference_kwargs(args))
     examples = [(logits, row["target"]) for row, logits in model.iter_scores(args.data)]
     temperature = fit_temperature(examples)
     report = {"temperature": temperature, "count": len(examples),
+              "inference": {**inference_kwargs(args), "weight_dtype": model.weight_dtype},
               "temperature_bounds": [0.05, 20.0],
               "log_loss_before": log_loss(examples, 1.0),
               "log_loss_after": log_loss(examples, temperature),
@@ -74,7 +75,7 @@ def main():
     config["calibration"] = report
     write_json(path, config)
     write_json(Path(args.model) / "calibration.json", report)
-    print(f"Temperature={temperature:.6g}; calibration NLL "
+    print(f"Temperature={temperature:.6g}; calibration NLL "  # noqa: T201 - CLI result
           f"{report['log_loss_before']:.6g} -> {report['log_loss_after']:.6g}")
 
 

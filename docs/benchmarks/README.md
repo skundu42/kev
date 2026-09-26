@@ -13,10 +13,41 @@ Results describe several different experiments. Keep their datasets, runtimes, s
 | Kev vs Jev, 100 rows | Completed source-balanced pilot, seed 42 | [Report](jev-pilot.json) |
 | Kev vs Jev, 17,476 rows | Completed paired evaluation | [Report](jev-full.json) |
 | Luni benchmark suite | Completed Kev-only evaluation, concurrency 1 | [Report](luni.json) |
+| CUDA inference optimization | Real Kev on RTX 4090; latency, precision, compilation, and API batching | [Report](inference-rtx4090.json) |
 
 Committed JSON files contain aggregate results, revisions and input hashes. Machine-local paths have been removed; raw examples, prediction logs and experimental Mac runners remain in ignored `runs/` directories and are not included in this commit. The maintained CUDA/Laya runner is [`kev.compare`](../../kev/compare.py); see the [evaluation guide](../evaluation.md). Model/data revision pins identify the evaluated artifacts, but aggregate summaries alone cannot recreate every request.
 
-All local runs used the same Kev checkpoint `aa9eb8668e2ab5675da1479993ae069c28124f10`, temperature 1.3734692667114208, Apple M3 Pro, MPS FP32, PyTorch 2.13.0 and Transformers 5.3.0. The experimental local adapter retained Kev formatting, calibration and limits; the supported production loader still requires CUDA. No benchmark test targets entered model inference or calibration.
+The Jev and Luni runs used the same Kev checkpoint `aa9eb8668e2ab5675da1479993ae069c28124f10`, temperature 1.3734692667114208, Apple M3 Pro, MPS FP32, PyTorch 2.13.0 and Transformers 5.3.0. The experimental local adapter retained Kev formatting, calibration and limits; the supported production loader requires CUDA. No benchmark test targets entered model inference or calibration.
+
+## CUDA inference optimization
+
+Measured on 26 September 2026 using the real `skundu42/kev` checkpoint above, RTX 4090, PyTorch 2.11.0+cu130, and Transformers 5.16.1. The latency workload contains 40 real `LocalLLaMA/typed-decisions` test cases: ten per workflow, 200 decisions, 710 candidate pairs. Each configuration has a full first pass, an additional warmup pass, and three measured passes. Timings include tokenization and synchronized GPU/CPU scores. [Input revisions, hashes, all configurations, memory, and probability deltas](inference-rtx4090.json) are retained.
+
+| Single-request configuration | Median ms | p95 ms |
+|---|---:|---:|
+| Original implementation, eight pairs | 80.37 | 102.27 |
+| Consolidated score transfer and asynchronous input copies | 78.17 | 99.76 |
+| Eight pairs, length grouping, exact padding (default) | **77.90** | **96.90** |
+| 32 pairs, exact padding, 16,384-token budget | 73.09 | 105.90 |
+| BF16 + compilation, 32 pairs, 256-token buckets, 8,192-token budget | 69.45 | 82.82 |
+
+The default retains eight pairs because the larger batch's median gain came with worse tail latency. Its 8,192-token budget does not bind on this sample. Transfer changes alone produced identical probabilities. Length grouping changed three winners out of 1,000 source-balanced held-out decisions: accuracy 80.1% versus 80.0%, Brier 0.282164 versus 0.281977, and ECE 0.026221 versus 0.028768. These small differences are drift measurements, not evidence of an accuracy gain; no temperature was refitted.
+
+With 32 pairs and 64-token buckets, direct BF16 weights reduced peak allocated VRAM from **1.79 to 1.06 GiB**. In the separate 1,000-decision, exact-padding check, BF16/SDPA retained 80.0% accuracy, changed four winners, increased Brier by 0.000489 and ECE by 0.000584, and had mean absolute probability drift 0.00305. BF16 remains opt-in. Eager FlashAttention was slower than SDPA on the typed sample: 83.11 versus 75.67 ms median with BF16 weights.
+
+Compilation with 64-token buckets sometimes reached PyTorch's recompilation limit; those timings include eager fallback and the initial FP32 first pass took 182 seconds. The 256-token profile in the table captured four graphs with no graph breaks or recompilation-limit warnings. Its first pass took 34.7 seconds **with the compiler's disk cache already warm from the earlier sweep**. It changed three winners among 200 decisions relative to eager BF16 with the same padding. Compilation remains opt-in; these warmup costs and probability changes matter when selecting a serving profile.
+
+The real HTTP app was also exercised through in-process ASGI, including authentication, JSON serialization, queueing, and model inference. At eight concurrent clients and **zero collection delay**, merging up to eight requests improved throughput **10.22 → 14.16 requests/sec (+38.5%)** and p95 **904.6 → 643.5 ms (−28.9%)** compared with the same queue processing one request at a time. All 1,560 measured requests across the two queue sweeps returned 200. These results exclude socket, TLS, Uvicorn connection-limit, and network overhead. The zero-delay default batches existing queued work; a configurable positive collection window trades idle-request latency for nearby arrivals.
+
+Use the [runtime benchmark commands](../inference.md#benchmark-runtime-settings) on representative inputs before changing precision or batch limits. The compiled profile measured above is:
+
+```bash
+python -m kev.serve --model /path/to/final \
+  --weight-dtype bfloat16 --pair-batch-size 32 --max-batch-tokens 8192 \
+  --compile --pad-to-multiple-of 256
+```
+
+This command also requires `KEV_API_KEY` as described in the [API guide](../inference.md#http-api).
 
 ## Published Kev evaluation
 

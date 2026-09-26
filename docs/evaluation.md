@@ -25,6 +25,8 @@ Evaluation emits both uncalibrated and calibrated metrics, grouped overall and b
 
 Temperature fitting searches `[0.05, 20]` on calibration data and includes temperature 1 as a baseline. Test data is not used to fit it or select training checkpoints. Small smoke results are not performance estimates.
 
+Both commands accept the shared [inference settings](inference.md#cli-and-python), including `--weight-dtype bfloat16`, batch/token limits, attention backend, and compilation. Reports record the selected settings and resolved weight dtype. Keep calibration and deployment settings aligned when changing precision; use the [runtime sweep](inference.md#benchmark-runtime-settings) to inspect probability, Brier, ECE, and log-loss changes without modifying the saved temperature.
+
 ## Compare with Laya
 
 The paired benchmark uses your prepared **test** partition and the English root checkpoint

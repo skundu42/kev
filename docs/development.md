@@ -17,6 +17,8 @@ When the API requirements and `httpx` are already available, also run the in-pro
 KEV_TEST_API=1 python3 scripts/test_offline.py
 ```
 
+Inference tests cover padded-token bounds, candidate/request order, aggregate score transfer, precision selection, queue saturation, deadlines, disconnects, and shutdown. Performance and calibration comparisons use real checkpoints through [`kev.benchmark`](inference.md#benchmark-runtime-settings); the [RTX 4090 report](benchmarks/README.md#cuda-inference-optimization) records a completed Kev run.
+
 ## Repository layout
 
 ```text

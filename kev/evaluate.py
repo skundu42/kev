@@ -6,6 +6,7 @@ import math
 from pathlib import Path
 
 from .core import softmax, validate_row, write_json
+from .inference import DecisionModel, add_inference_arguments, inference_kwargs
 
 
 class Metrics:
@@ -22,8 +23,8 @@ class Metrics:
         top = max(range(len(probabilities)), key=probabilities.__getitem__)
         self.count += 1
         self.correct += target[top] > 0
-        self.nll -= sum(y * math.log(max(p, 1e-300)) for y, p in zip(target, probabilities))
-        self.brier += sum((p - y) ** 2 for p, y in zip(probabilities, target))
+        self.nll -= sum(y * math.log(max(p, 1e-300)) for y, p in zip(target, probabilities, strict=True))
+        self.brier += sum((p - y) ** 2 for p, y in zip(probabilities, target, strict=True))
         bucket = self.bins[min(14, int(probabilities[top] * 15))]
         bucket[0] += 1
         bucket[1] += probabilities[top]
@@ -31,7 +32,7 @@ class Metrics:
         if row["kind"] == "score":
             self.score_count += 1
             self.score_error += abs(sum(i * (p - y) for i, (p, y) in
-                                        enumerate(zip(probabilities, target))))
+                                        enumerate(zip(probabilities, target, strict=True))))
 
     def result(self):
         if not self.count:
@@ -70,19 +71,19 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--data", required=True)
     parser.add_argument("--output", required=True)
+    add_inference_arguments(parser)
     args = parser.parse_args()
     if Path(args.output).exists():
         parser.error("Report already exists; choose another --output path")
-    from .inference import DecisionModel
-
-    model = DecisionModel.from_pretrained(args.model)
+    model = DecisionModel.from_pretrained(args.model, **inference_kwargs(args))
     report = evaluate(model.iter_scores(args.data), model.temperature)
     report.update({"temperature": model.temperature, "data_sha256": file_sha256(args.data),
+                   "inference": {**inference_kwargs(args), "weight_dtype": model.weight_dtype},
                    "checkpoint": str(Path(args.model).resolve()),
                    "notes": "Accuracy accepts any positive target. ECE uses gold probability mass, "
                             "not any-positive accuracy. Ordinal MAE uses zero-based level indices."})
     write_json(args.output, report)
-    print(f"Wrote {args.output}")
+    print(f"Wrote {args.output}")  # noqa: T201 - CLI result
 
 
 if __name__ == "__main__":
