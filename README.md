@@ -61,8 +61,6 @@ Kev performs well on its own held-out task mixture, but the external phishing an
 | Kev vs Jev 1.13 pilot | 100 | 80.00% | 81.00% | Completed source-balanced pilot |
 | Kev vs Jev 1.13 full | 17,476 | 79.96% | 73.54% | Completed paired M3 Pro / OpenRouter run |
 
-The pilot is part of the full test pool, not independent confirmation. The historical standalone export evaluation recorded **79.86%** accuracy; it is a separate run from these comparisons. Kev’s task families and calibration are in-domain; comparator training overlap is unknown. The Laya comparison altered 1,597 inputs under Laya’s native limits; on the shared 15,879 unaltered rows, accuracy was 79.44% versus 52.93%.
-
 | Full Kev/Jev run | Kev | Jev |
 |---|---:|---:|
 | Brier score ↓ | 0.2769 | 0.3823 |
@@ -72,8 +70,6 @@ The pilot is part of the full test pool, not independent confirmation. The histo
 | p95 request latency | 607.3 ms | 499.5 ms |
 
 Kev’s accuracy lead was **6.41 percentage points**, but Jev had lower ordinal error and won on HellaSwag, ANLI, BoolQ and defeasible NLI. Much of Kev’s aggregate advantage came from FOL-NLI and zero-shot-label-NLI. See the [per-source breakdown and probability-rounding caveats](docs/benchmarks/README.md#paired-kev-vs-jev).
-
-Latency is not a pure model-speed comparison: Kev ran sequentially in FP32 on one Apple M3 Pro GPU, while Jev used four concurrent remote requests and includes network time. Kev’s summed request time was **64.29 minutes** (221 ms mean, 54,402 candidate pairs). Model loading and warmups were excluded.
 
 ### External evaluation: Luni benchmark suite
 
