@@ -1,0 +1,260 @@
+{
+  "uncalibrated": {
+    "overall": {
+      "count": 17476,
+      "accuracy": 0.7985809109636073,
+      "log_loss": 0.49230193969031993,
+      "brier_score": 0.2802096009227025,
+      "ece_15": 0.038409021587914594,
+      "ordinal_mae": 0.3727614025515071,
+      "ordinal_count": 997
+    },
+    "source/tasksource/zero-shot-label-nli": {
+      "count": 1979,
+      "accuracy": 0.7281455280444669,
+      "log_loss": 0.5161915449429214,
+      "brier_score": 0.34877216174971326,
+      "ece_15": 0.03029219201220161,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "kind/choice": {
+      "count": 15651,
+      "accuracy": 0.8008433965880775,
+      "log_loss": 0.4911452188629626,
+      "brier_score": 0.2776828999683597,
+      "ece_15": 0.04135510104840071,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/tasksource-instruct-v0": {
+      "count": 997,
+      "accuracy": 0.7121364092276831,
+      "log_loss": 0.6544185656310946,
+      "brier_score": 0.3905858788701158,
+      "ece_15": 0.027067872892760816,
+      "ordinal_mae": 0.3727614025515071,
+      "ordinal_count": 997
+    },
+    "kind/score": {
+      "count": 997,
+      "accuracy": 0.7121364092276831,
+      "log_loss": 0.6544185656310946,
+      "brier_score": 0.3905858788701158,
+      "ece_15": 0.027067872892760816,
+      "ordinal_mae": 0.3727614025515071,
+      "ordinal_count": 997
+    },
+    "source/nyu-mll/multi_nli": {
+      "count": 2000,
+      "accuracy": 0.907,
+      "log_loss": 0.2503782744702875,
+      "brier_score": 0.1398590301676452,
+      "ece_15": 0.009440014677003127,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/facebook/anli": {
+      "count": 2000,
+      "accuracy": 0.5785,
+      "log_loss": 1.0241603772169452,
+      "brier_score": 0.598273250581322,
+      "ece_15": 0.1877582769905423,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/defeasible-nli": {
+      "count": 2000,
+      "accuracy": 0.8745,
+      "log_loss": 0.2953982323779266,
+      "brier_score": 0.18100591800831833,
+      "ece_15": 0.01850405280593437,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/FOL-nli": {
+      "count": 2000,
+      "accuracy": 0.834,
+      "log_loss": 0.41933690098607834,
+      "brier_score": 0.2384377747731735,
+      "ece_15": 0.013194922042872767,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/doc-nli": {
+      "count": 1776,
+      "accuracy": 0.8693693693693694,
+      "log_loss": 0.4702459141944009,
+      "brier_score": 0.21602108515578877,
+      "ece_15": 0.09066421378716669,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/bigbench": {
+      "count": 1896,
+      "accuracy": 0.7600210970464135,
+      "log_loss": 0.5945892380200355,
+      "brier_score": 0.29760266888297954,
+      "ece_15": 0.027778599832484385,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/Rowan/hellaswag": {
+      "count": 2000,
+      "accuracy": 0.86,
+      "log_loss": 0.36216262199223165,
+      "brier_score": 0.19636745240119854,
+      "ece_15": 0.024481463629632053,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/google/boolq": {
+      "count": 828,
+      "accuracy": 0.8599033816425121,
+      "log_loss": 0.31896083051883756,
+      "brier_score": 0.19506497232710848,
+      "ece_15": 0.02807812588868236,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "kind/noul": {
+      "count": 828,
+      "accuracy": 0.8599033816425121,
+      "log_loss": 0.31896083051883756,
+      "brier_score": 0.19506497232710848,
+      "ece_15": 0.02807812588868236,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    }
+  },
+  "calibrated": {
+    "overall": {
+      "count": 17476,
+      "accuracy": 0.7985809109636073,
+      "log_loss": 0.4746148257879429,
+      "brier_score": 0.2768548946790544,
+      "ece_15": 0.014261655942813945,
+      "ordinal_mae": 0.3923422177916232,
+      "ordinal_count": 997
+    },
+    "source/tasksource/zero-shot-label-nli": {
+      "count": 1979,
+      "accuracy": 0.7281455280444669,
+      "log_loss": 0.5150510230997565,
+      "brier_score": 0.3481778900388312,
+      "ece_15": 0.029566299660355483,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "kind/choice": {
+      "count": 15651,
+      "accuracy": 0.8008433965880775,
+      "log_loss": 0.4706446079609039,
+      "brier_score": 0.273581528978314,
+      "ece_15": 0.01438703174072128,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/tasksource-instruct-v0": {
+      "count": 997,
+      "accuracy": 0.7121364092276831,
+      "log_loss": 0.6653333170635247,
+      "brier_score": 0.3952071519663628,
+      "ece_15": 0.05664073959338466,
+      "ordinal_mae": 0.3923422177916232,
+      "ordinal_count": 997
+    },
+    "kind/score": {
+      "count": 997,
+      "accuracy": 0.7121364092276831,
+      "log_loss": 0.6653333170635247,
+      "brier_score": 0.3952071519663628,
+      "ece_15": 0.05664073959338466,
+      "ordinal_mae": 0.3923422177916232,
+      "ordinal_count": 997
+    },
+    "source/nyu-mll/multi_nli": {
+      "count": 2000,
+      "accuracy": 0.907,
+      "log_loss": 0.2676430728353943,
+      "brier_score": 0.14473967691300926,
+      "ece_15": 0.04730422129633431,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/facebook/anli": {
+      "count": 2000,
+      "accuracy": 0.5785,
+      "log_loss": 0.9133303232149986,
+      "brier_score": 0.5611027917633463,
+      "ece_15": 0.12427056134727293,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/defeasible-nli": {
+      "count": 2000,
+      "accuracy": 0.8745,
+      "log_loss": 0.29925963680728324,
+      "brier_score": 0.18316015565997798,
+      "ece_15": 0.030345176892877232,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/FOL-nli": {
+      "count": 2000,
+      "accuracy": 0.834,
+      "log_loss": 0.425081312444918,
+      "brier_score": 0.24203185420889972,
+      "ece_15": 0.04191806881829498,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/doc-nli": {
+      "count": 1776,
+      "accuracy": 0.8693693693693694,
+      "log_loss": 0.3776345216910134,
+      "brier_score": 0.20410689079041464,
+      "ece_15": 0.0721990192199759,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/tasksource/bigbench": {
+      "count": 1896,
+      "accuracy": 0.7600210970464135,
+      "log_loss": 0.602894896267623,
+      "brier_score": 0.30396554743519166,
+      "ece_15": 0.051980339698730865,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/Rowan/hellaswag": {
+      "count": 2000,
+      "accuracy": 0.86,
+      "log_loss": 0.3611882300149126,
+      "brier_score": 0.19594949629069483,
+      "ece_15": 0.022342067811566196,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "source/google/boolq": {
+      "count": 828,
+      "accuracy": 0.8599033816425121,
+      "log_loss": 0.32001524053340347,
+      "brier_score": 0.19621992616078116,
+      "ece_15": 0.03950134207516404,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    },
+    "kind/noul": {
+      "count": 828,
+      "accuracy": 0.8599033816425121,
+      "log_loss": 0.32001524053340347,
+      "brier_score": 0.19621992616078116,
+      "ece_15": 0.03950134207516404,
+      "ordinal_mae": null,
+      "ordinal_count": 0
+    }
+  },
+  "source": "https://huggingface.co/skundu42/kev/blob/aa9eb8668e2ab5675da1479993ae069c28124f10/evaluation.json",
+  "note": "Published evaluation, not rerun for this documentation update; task-level entries omitted from this summary."
+}

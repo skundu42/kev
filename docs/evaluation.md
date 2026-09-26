@@ -1,6 +1,6 @@
 # Calibration and evaluation
 
-[Project overview](../README.md)
+[Project overview](../README.md) · [Recorded benchmark results and limitations](benchmarks/README.md)
 
 Run evaluation from the repository root on the GPU pod after training. Commands below assume a completed `runs/demo/final` export and prepared data in `data/mixture-v1`; adjust the paths for your setup. The `fit` workflow already runs calibration and evaluation, so these commands are also available as separate stages. Evaluation will not overwrite an existing report; choose a new output path to repeat it.
 

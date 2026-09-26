@@ -1,0 +1,314 @@
+{
+  "count": 17476,
+  "model_revision": "aa9eb8668e2ab5675da1479993ae069c28124f10",
+  "data_revision": "5cea4539b6676edfb4fd1fb60878e9aee602b0cd",
+  "sample_sha256": "440db004277ed7cba61bca20421ac1028b08a4c3f952d12f0c4df991d69bcc8b",
+  "data_sha256": "8442fc4dbeb740baab4603a0ebc079f5fa53474e7b5bba9b4f82a206d5a65dc7",
+  "seed": 42,
+  "per_source": 0,
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "hardware": "Apple M3 Pro",
+  "torch": "2.13.0",
+  "transformers": "5.3.0",
+  "device": "mps",
+  "precision": "float32",
+  "temperature": 1.3734692667114208,
+  "notes": [
+    "Full held-out Kev test mixture; task families are in-domain for Kev, Jev training overlap unknown.",
+    "Kev uses experimental MPS FP32 execution, native formatting and shipped calibration. Jev uses hosted native calibration.",
+    "One decision/request. Kev sequential; Jev four concurrent HTTP workers. Latency is per request, excludes executor queue, includes retries/backoff. Jev and Kev run concurrently on this host.",
+    "Three warmups per model per invocation excluded from metrics and reported API cost. Downloads and model loading excluded.",
+    "Kev timing includes tokenization and synchronized inference. Jev includes network time; not a pure model speed comparison.",
+    "Accuracy accepts any positive target; ECE uses target mass. Ordinal MAE uses zero-based indices.",
+    "Raw log loss floors zero at 1e-300. Additional clipped log loss uses 1e-6 for both models; rounded API zeroes can dominate raw log loss.",
+    "Jev probabilities are validated then renormalized within 0.005 times candidate count tolerance for hundredth rounding. Raw responses are retained after the initial rounding-check fix.",
+    "No truncation or recalibration. API errors are retained and never counted as valid predictions.",
+    "Recovered first-pass failures are timed from their recovery request; earlier failed-attempt latency is excluded. Reported latency describes recorded successful requests, not total service reliability.",
+    "This is one run on a shared desktop host; background load and thermal state are not controlled."
+  ],
+  "completed": {
+    "kev": 17476,
+    "jev": 17476
+  },
+  "status": "complete",
+  "kev": {
+    "metrics": {
+      "overall": {
+        "count": 17476,
+        "accuracy": 0.7995536736095217,
+        "log_loss": 0.474688768328749,
+        "brier_score": 0.2768883567233981,
+        "ece_15": 0.015147925063093943,
+        "ordinal_mae": 0.3923452445888033,
+        "ordinal_count": 997
+      },
+      "source/google/boolq": {
+        "count": 828,
+        "accuracy": 0.8623188405797102,
+        "log_loss": 0.31984648486252676,
+        "brier_score": 0.1960205384493291,
+        "ece_15": 0.03827099302261305,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/noul": {
+        "count": 828,
+        "accuracy": 0.8623188405797102,
+        "log_loss": 0.31984648486252676,
+        "brier_score": 0.1960205384493291,
+        "ece_15": 0.03827099302261305,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/defeasible-nli": {
+        "count": 2000,
+        "accuracy": 0.874,
+        "log_loss": 0.2992257459023622,
+        "brier_score": 0.18313003461404853,
+        "ece_15": 0.03012395699149333,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/choice": {
+        "count": 15651,
+        "accuracy": 0.8016740144399719,
+        "log_loss": 0.4707208008567904,
+        "brier_score": 0.2736231998997324,
+        "ece_15": 0.015159103988898904,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/FOL-nli": {
+        "count": 2000,
+        "accuracy": 0.832,
+        "log_loss": 0.4245761603260704,
+        "brier_score": 0.24184831311493563,
+        "ece_15": 0.04381809858071244,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/zero-shot-label-nli": {
+        "count": 1979,
+        "accuracy": 0.730166750884285,
+        "log_loss": 0.5149860872795294,
+        "brier_score": 0.3481123167870271,
+        "ece_15": 0.02680292772003146,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/nyu-mll/multi_nli": {
+        "count": 2000,
+        "accuracy": 0.9075,
+        "log_loss": 0.26795568097407285,
+        "brier_score": 0.14487109006256152,
+        "ece_15": 0.048035036434378585,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/doc-nli": {
+        "count": 1776,
+        "accuracy": 0.8682432432432432,
+        "log_loss": 0.3778617280108485,
+        "brier_score": 0.2044593623684313,
+        "ece_15": 0.0699883306654724,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/Rowan/hellaswag": {
+        "count": 2000,
+        "accuracy": 0.8615,
+        "log_loss": 0.3614700480028169,
+        "brier_score": 0.19590253943232916,
+        "ece_15": 0.023206453184668355,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/facebook/anli": {
+        "count": 2000,
+        "accuracy": 0.581,
+        "log_loss": 0.9136559875883524,
+        "brier_score": 0.561272177531661,
+        "ece_15": 0.1250495924542438,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/bigbench": {
+        "count": 1896,
+        "accuracy": 0.7637130801687764,
+        "log_loss": 0.6029768528211081,
+        "brier_score": 0.3040054270209899,
+        "ece_15": 0.05049196163886271,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/tasksource-instruct-v0": {
+        "count": 997,
+        "accuracy": 0.7141424272818455,
+        "log_loss": 0.6655734921137709,
+        "brier_score": 0.39530513002138995,
+        "ece_15": 0.0571795871076686,
+        "ordinal_mae": 0.3923452445888033,
+        "ordinal_count": 997
+      },
+      "kind/score": {
+        "count": 997,
+        "accuracy": 0.7141424272818455,
+        "log_loss": 0.6655734921137709,
+        "brier_score": 0.39530513002138995,
+        "ece_15": 0.0571795871076686,
+        "ordinal_mae": 0.3923452445888033,
+        "ordinal_count": 997
+      }
+    },
+    "log_loss_floor_1e_6": 0.474688768328749,
+    "latency_median_ms": 132.65306201355997,
+    "latency_p95_ms": 607.2672090085689,
+    "measured_api_cost_usd": 0,
+    "retried_requests": 0
+  },
+  "jev": {
+    "metrics": {
+      "overall": {
+        "count": 17476,
+        "accuracy": 0.7354085603112841,
+        "log_loss": 9.942499510847405,
+        "brier_score": 0.3823364620622066,
+        "ece_15": 0.09789878066540607,
+        "ordinal_mae": 0.356359786429997,
+        "ordinal_count": 997
+      },
+      "source/google/boolq": {
+        "count": 828,
+        "accuracy": 0.9178743961352657,
+        "log_loss": 0.23345208704475698,
+        "brier_score": 0.13339178743961358,
+        "ece_15": 0.03357487922705267,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/noul": {
+        "count": 828,
+        "accuracy": 0.9178743961352657,
+        "log_loss": 0.23345208704475698,
+        "brier_score": 0.13339178743961358,
+        "ece_15": 0.03357487922705267,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/defeasible-nli": {
+        "count": 2000,
+        "accuracy": 0.888,
+        "log_loss": 0.28232365097329104,
+        "brier_score": 0.16812150000000106,
+        "ece_15": 0.04044499999999563,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/choice": {
+        "count": 15651,
+        "accuracy": 0.7297936234106447,
+        "log_loss": 10.157828069195572,
+        "brier_score": 0.38885131742923545,
+        "ece_15": 0.10001124270625711,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/FOL-nli": {
+        "count": 2000,
+        "accuracy": 0.603,
+        "log_loss": 23.3174188809922,
+        "brier_score": 0.5608932676767675,
+        "ece_15": 0.18449272727272853,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/zero-shot-label-nli": {
+        "count": 1979,
+        "accuracy": 0.24456796361798888,
+        "log_loss": 38.635060748383324,
+        "brier_score": 1.147075473277493,
+        "ece_15": 0.5288341219164869,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/nyu-mll/multi_nli": {
+        "count": 2000,
+        "accuracy": 0.86,
+        "log_loss": 5.16081050351465,
+        "brier_score": 0.20543229956127043,
+        "ece_15": 0.03620282828283283,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/doc-nli": {
+        "count": 1776,
+        "accuracy": 0.8620495495495496,
+        "log_loss": 0.33040038402848015,
+        "brier_score": 0.19893783783783875,
+        "ece_15": 0.016801801801797665,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/Rowan/hellaswag": {
+        "count": 2000,
+        "accuracy": 0.9345,
+        "log_loss": 1.54811772894104,
+        "brier_score": 0.0927486963983271,
+        "ece_15": 0.017063989898985867,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/facebook/anli": {
+        "count": 2000,
+        "accuracy": 0.7435,
+        "log_loss": 6.813155698397953,
+        "brier_score": 0.36817532501785444,
+        "ece_15": 0.07973904040404271,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/bigbench": {
+        "count": 1896,
+        "accuracy": 0.7114978902953587,
+        "log_loss": 4.056401836633012,
+        "brier_score": 0.35432164037984515,
+        "ece_15": 0.03638494651153086,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/tasksource-instruct-v0": {
+        "count": 997,
+        "accuracy": 0.6720160481444333,
+        "log_loss": 14.625532610349124,
+        "brier_score": 0.4868120781485365,
+        "ece_15": 0.16330172335187432,
+        "ordinal_mae": 0.356359786429997,
+        "ordinal_count": 997
+      },
+      "kind/score": {
+        "count": 997,
+        "accuracy": 0.6720160481444333,
+        "log_loss": 14.625532610349124,
+        "brier_score": 0.4868120781485365,
+        "ece_15": 0.16330172335187432,
+        "ordinal_mae": 0.356359786429997,
+        "ordinal_count": 997
+      }
+    },
+    "log_loss_floor_1e_6": 0.8394093257388533,
+    "latency_median_ms": 388.41333299933467,
+    "latency_p95_ms": 499.46937497588806,
+    "measured_api_cost_usd": 0.343704228,
+    "retried_requests": 1
+  },
+  "paired_correctness_counts": {
+    "both_correct": 11070,
+    "kev_only": 2903,
+    "jev_only": 1782,
+    "both_wrong": 1721
+  },
+  "paired_count": 17476,
+  "jev_served_models": [
+    "typesafe/jev-1.13-20260917"
+  ]
+}

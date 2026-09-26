@@ -1,0 +1,297 @@
+{
+  "count": 100,
+  "model_revision": "aa9eb8668e2ab5675da1479993ae069c28124f10",
+  "data_revision": "5cea4539b6676edfb4fd1fb60878e9aee602b0cd",
+  "sample_sha256": "8f064237452e6b919273735d710b85fadf8a291785b94ed1f6b72ecfa045643c",
+  "data_sha256": "8442fc4dbeb740baab4603a0ebc079f5fa53474e7b5bba9b4f82a206d5a65dc7",
+  "seed": 42,
+  "per_source": 10,
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "torch": "2.13.0",
+  "transformers": "5.3.0",
+  "device": "mps",
+  "precision": "float32",
+  "temperature": 1.3734692667114208,
+  "notes": [
+    "Pilot on Kev in-domain test mixture; Jev training overlap unknown. Not a general superiority benchmark.",
+    "Kev native formatting and calibration, experimental MPS execution; Jev hosted native calibration.",
+    "One row/request. Three warmups each, excluded from latency. Downloads/load excluded. Jev latency includes network; Kev includes tokenization and synchronized inference.",
+    "Accuracy accepts any positive target; ECE uses target mass. Log loss floors zero at 1e-300; rounded Jev zeroes can dominate log loss."
+  ],
+  "kev": {
+    "metrics": {
+      "overall": {
+        "count": 100,
+        "accuracy": 0.8,
+        "log_loss": 0.45074535202323324,
+        "brier_score": 0.26212545866729686,
+        "ece_15": 0.07050224228710432,
+        "ordinal_mae": 0.28656103087118756,
+        "ordinal_count": 10
+      },
+      "source/tasksource/zero-shot-label-nli": {
+        "count": 10,
+        "accuracy": 0.7,
+        "log_loss": 0.4244882788868261,
+        "brier_score": 0.2925217918461685,
+        "ece_15": 0.30189921224877975,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/choice": {
+        "count": 80,
+        "accuracy": 0.7875,
+        "log_loss": 0.454287346222997,
+        "brier_score": 0.26204860516239403,
+        "ece_15": 0.07718319150610033,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/google/boolq": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.24172446401202627,
+        "brier_score": 0.14796494953446931,
+        "ece_15": 0.17466288220331477,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/noul": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.24172446401202627,
+        "brier_score": 0.14796494953446931,
+        "ece_15": 0.17466288220331477,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/tasksource-instruct-v0": {
+        "count": 10,
+        "accuracy": 0.8,
+        "log_loss": 0.63143028643633,
+        "brier_score": 0.37690079583934694,
+        "ece_15": 0.2506890468031442,
+        "ordinal_mae": 0.28656103087118756,
+        "ordinal_count": 10
+      },
+      "kind/score": {
+        "count": 10,
+        "accuracy": 0.8,
+        "log_loss": 0.63143028643633,
+        "brier_score": 0.37690079583934694,
+        "ece_15": 0.2506890468031442,
+        "ordinal_mae": 0.28656103087118756,
+        "ordinal_count": 10
+      },
+      "source/tasksource/defeasible-nli": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.3017379972552795,
+        "brier_score": 0.18409498444717912,
+        "ece_15": 0.22482095138396735,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/Rowan/hellaswag": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.27451982178835327,
+        "brier_score": 0.14645807817666726,
+        "ece_15": 0.07416762487953722,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/bigbench": {
+        "count": 10,
+        "accuracy": 0.6,
+        "log_loss": 0.9121388539469368,
+        "brier_score": 0.46878323265141486,
+        "ece_15": 0.18669652046808585,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/doc-nli": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.2185355410233138,
+        "brier_score": 0.1509811359719422,
+        "ece_15": 0.12353500762428346,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/nyu-mll/multi_nli": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.21520263805877732,
+        "brier_score": 0.11271454400390231,
+        "ece_15": 0.14475522480165282,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/facebook/anli": {
+        "count": 10,
+        "accuracy": 0.7,
+        "log_loss": 0.6520677737413116,
+        "brier_score": 0.3779644037373207,
+        "ece_15": 0.24148998059913382,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/FOL-nli": {
+        "count": 10,
+        "accuracy": 0.7,
+        "log_loss": 0.6356078650831785,
+        "brier_score": 0.362870670464558,
+        "ece_15": 0.11957285342004823,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      }
+    },
+    "latency_median_ms": 129.71572899550665,
+    "latency_p95_ms": 401.4321670110803,
+    "measured_api_cost_usd": 0
+  },
+  "jev": {
+    "metrics": {
+      "overall": {
+        "count": 100,
+        "accuracy": 0.81,
+        "log_loss": 28.16989378313273,
+        "brier_score": 0.35354599999999997,
+        "ece_15": 0.14719999999999991,
+        "ordinal_mae": 0.41,
+        "ordinal_count": 10
+      },
+      "source/tasksource/zero-shot-label-nli": {
+        "count": 10,
+        "accuracy": 0.4,
+        "log_loss": 70.85342292087054,
+        "brier_score": 1.0274400000000001,
+        "ece_15": 0.46900000000000003,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/choice": {
+        "count": 80,
+        "accuracy": 0.825,
+        "log_loss": 35.04920347296816,
+        "brier_score": 0.3482025,
+        "ece_15": 0.1765,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/google/boolq": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.2068043189981485,
+        "brier_score": 0.13062,
+        "ece_15": 0.13100000000000003,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "kind/noul": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.2068043189981485,
+        "brier_score": 0.13062,
+        "ece_15": 0.13100000000000003,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/tasksource-instruct-v0": {
+        "count": 10,
+        "accuracy": 0.6,
+        "log_loss": 1.0985057285838553,
+        "brier_score": 0.61922,
+        "ece_15": 0.413,
+        "ordinal_mae": 0.41,
+        "ordinal_count": 10
+      },
+      "kind/score": {
+        "count": 10,
+        "accuracy": 0.6,
+        "log_loss": 1.0985057285838553,
+        "brier_score": 0.61922,
+        "ece_15": 0.413,
+        "ordinal_mae": 0.41,
+        "ordinal_count": 10
+      },
+      "source/tasksource/defeasible-nli": {
+        "count": 10,
+        "accuracy": 1.0,
+        "log_loss": 0.13605838362786674,
+        "brier_score": 0.05256000000000001,
+        "ece_15": 0.11999999999999997,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/Rowan/hellaswag": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.18445285347672108,
+        "brier_score": 0.12,
+        "ece_15": 0.12199999999999997,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/bigbench": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 69.26396387294928,
+        "brier_score": 0.27968,
+        "ece_15": 0.19400000000000003,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/doc-nli": {
+        "count": 10,
+        "accuracy": 0.9,
+        "log_loss": 0.5578053170224063,
+        "brier_score": 0.27568,
+        "ece_15": 0.21599999999999997,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/nyu-mll/multi_nli": {
+        "count": 10,
+        "accuracy": 1.0,
+        "log_loss": 0.1824668511092564,
+        "brier_score": 0.10144000000000002,
+        "ece_15": 0.14600000000000005,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/facebook/anli": {
+        "count": 10,
+        "accuracy": 0.8,
+        "log_loss": 0.46242180642366604,
+        "brier_score": 0.2811,
+        "ece_15": 0.213,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      },
+      "source/tasksource/FOL-nli": {
+        "count": 10,
+        "accuracy": 0.7,
+        "log_loss": 138.75303577826566,
+        "brier_score": 0.64772,
+        "ece_15": 0.43,
+        "ordinal_mae": null,
+        "ordinal_count": 0
+      }
+    },
+    "latency_median_ms": 390.42260400310624,
+    "latency_p95_ms": 529.5184580027126,
+    "measured_api_cost_usd": 0.00193431
+  },
+  "hardware": "Apple M3 Pro",
+  "paired_correctness_counts": {
+    "(True, False)": 11,
+    "(False, True)": 12,
+    "(True, True)": 69,
+    "(False, False)": 8
+  },
+  "jev_served_models": [
+    "typesafe/jev-1.13-20260917"
+  ]
+}

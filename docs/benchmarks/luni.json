@@ -1,0 +1,326 @@
+{
+  "status": "complete",
+  "runtime": {
+    "concurrency": 1,
+    "device": "mps",
+    "precision": "float32",
+    "hardware": "Apple M3 Pro",
+    "torch": "2.13.0",
+    "transformers": "5.3.0",
+    "temperature": 1.3734692667114208,
+    "cases_sha256": "27d8009b9427535b351e85395a65cfb475688c86b6d933388c0d6c7dd788186f",
+    "revisions": {
+      "Luni/laya-jev-benchmark": "d75081b2a4b2ad772793d6a7f5f5b4fdca00d557",
+      "AreLit/PhishNChips": "89afcc39610084298c4679159cb2e27d9ffffa46",
+      "LocalLLaMA/typed-decisions": "f7a2487edd7a043a5441a5e9ccc7fe5ddbd9ebe8",
+      "skundu42/kev": "aa9eb8668e2ab5675da1479993ae069c28124f10"
+    },
+    "new_jev_requests": 0,
+    "pair_batch_size": 8,
+    "notes": [
+      "One case/request at a time, no concurrency. Typed cases retain all five questions; candidates batched internally as in Kev inference.",
+      "Unmodified Kev formatting and calibration; local MPS FP32 adapter replaces CUDA autocast only.",
+      "Latency includes parsing, tokenization and synchronized inference; loading and three warmups per suite excluded.",
+      "No calibration or fine-tuning on these benchmarks. No silent truncation; rejected cases are recorded.",
+      "Jev and Laya reference numbers, if shown, are published third-party results, not paired runs performed here."
+    ]
+  },
+  "manifest": {
+    "revisions": {
+      "Luni/laya-jev-benchmark": "d75081b2a4b2ad772793d6a7f5f5b4fdca00d557",
+      "AreLit/PhishNChips": "89afcc39610084298c4679159cb2e27d9ffffa46",
+      "LocalLLaMA/typed-decisions": "f7a2487edd7a043a5441a5e9ccc7fe5ddbd9ebe8",
+      "skundu42/kev": "aa9eb8668e2ab5675da1479993ae069c28124f10"
+    },
+    "suites": {
+      "phishing": {
+        "cases": 2000,
+        "decisions": 2000,
+        "rejected_cases": 0
+      },
+      "typed_decisions": {
+        "cases": 400,
+        "decisions": 2000,
+        "rejected_cases": 0
+      },
+      "probes": {
+        "cases": 14,
+        "decisions": 14,
+        "rejected_cases": 0
+      }
+    },
+    "cases_sha256": "27d8009b9427535b351e85395a65cfb475688c86b6d933388c0d6c7dd788186f",
+    "source_sha256": {
+      "phishing": "cebb407ff8630491a97400e37464b8db8dfc4299164fca51fcb4ac7eec8204ef",
+      "typed_decisions": "4f294f218ea1da27f3efef936359389c62ea4d3973a41457732990f1d31b647c",
+      "probes": "296623eb401e4f66c8e8fec450359c37a25eb65493e4e6bb1f1c4d002a00fb27"
+    },
+    "rejected": []
+  },
+  "phishing": {
+    "cases": 2000,
+    "positives": 1000,
+    "negatives": 1000,
+    "correct": 1005,
+    "accuracy": 0.5025,
+    "ece_15": 0.23016389419340041,
+    "auroc": 0.34821,
+    "recall": 1.0,
+    "precision": 0.5012531328320802,
+    "binary_brier": 0.31572986419471555,
+    "log_loss": 0.8500921666597605,
+    "confusion_matrix": {
+      "tp": 1000,
+      "fp": 995,
+      "tn": 5,
+      "fn": 0
+    },
+    "latency_per_email": {
+      "count": 2000,
+      "inference_seconds": 267.035367768025,
+      "mean_ms": 133.5176838840125,
+      "p50_ms": 123.44118750479538,
+      "p95_ms": 202.58949999697506
+    }
+  },
+  "typed_decisions": {
+    "cases": 400,
+    "decisions": 2000,
+    "correct": 883,
+    "accuracy": 0.4415,
+    "ece_15_hard_label": 0.12434552326047597,
+    "decision_types": {
+      "choice": 600,
+      "noul": 600,
+      "score": 800
+    },
+    "choice_noul_brier": 0.2978390516873454,
+    "choice_noul_soft_accuracy": 0.40256668732578055,
+    "choice_noul_total_variation": 0.375519419535025,
+    "choice_noul_ece_target_mass": 0.18374135244643974,
+    "score_mae": 0.6104588453485321,
+    "score_within_one": 0.83625,
+    "score_decisions": 800,
+    "latency_per_case": {
+      "count": 400,
+      "inference_seconds": 811.072437002178,
+      "mean_ms": 2027.681092505445,
+      "p50_ms": 2008.4570835024351,
+      "p95_ms": 3376.915749977343
+    },
+    "by_workflow": {
+      "agent_trace_observability": {
+        "cases": 100,
+        "decisions": 500,
+        "correct": 183,
+        "accuracy": 0.366,
+        "ece_15_hard_label": 0.1496834882010683,
+        "decision_types": {
+          "choice": 200,
+          "noul": 100,
+          "score": 200
+        },
+        "choice_noul_brier": 0.361180926584191,
+        "choice_noul_soft_accuracy": 0.3392010615940095,
+        "choice_noul_total_variation": 0.4102336057824307,
+        "choice_noul_ece_target_mass": 0.21699186433170947,
+        "score_mae": 0.5902321192030118,
+        "score_within_one": 0.875,
+        "score_decisions": 200,
+        "latency_per_case": {
+          "count": 100,
+          "inference_seconds": 128.1683187111048,
+          "mean_ms": 1281.683187111048,
+          "p50_ms": 1263.8923335034633,
+          "p95_ms": 1433.0649579933379
+        }
+      },
+      "customer_service": {
+        "cases": 100,
+        "decisions": 500,
+        "correct": 242,
+        "accuracy": 0.484,
+        "ece_15_hard_label": 0.08437737979836214,
+        "decision_types": {
+          "choice": 200,
+          "score": 200,
+          "noul": 100
+        },
+        "choice_noul_brier": 0.303267044191957,
+        "choice_noul_soft_accuracy": 0.3840953616762342,
+        "choice_noul_total_variation": 0.40848195230044565,
+        "choice_noul_ece_target_mass": 0.13264970654979166,
+        "score_mae": 0.5425153442504217,
+        "score_within_one": 0.905,
+        "score_decisions": 200,
+        "latency_per_case": {
+          "count": 100,
+          "inference_seconds": 277.2728150781186,
+          "mean_ms": 2772.728150781186,
+          "p50_ms": 2750.1954165054485,
+          "p95_ms": 4180.137124989415
+        }
+      },
+      "invoice_processing": {
+        "cases": 100,
+        "decisions": 500,
+        "correct": 221,
+        "accuracy": 0.442,
+        "ece_15_hard_label": 0.24532404193975255,
+        "decision_types": {
+          "score": 200,
+          "choice": 100,
+          "noul": 200
+        },
+        "choice_noul_brier": 0.35658250838699773,
+        "choice_noul_soft_accuracy": 0.45144462297369864,
+        "choice_noul_total_variation": 0.40287381019350665,
+        "choice_noul_ece_target_mass": 0.22913977943613167,
+        "score_mae": 0.7643239519220408,
+        "score_within_one": 0.655,
+        "score_decisions": 200,
+        "latency_per_case": {
+          "count": 100,
+          "inference_seconds": 212.6596274219628,
+          "mean_ms": 2126.596274219628,
+          "p50_ms": 2111.838041993906,
+          "p95_ms": 2373.4434999933
+        }
+      },
+      "security_incidents": {
+        "cases": 100,
+        "decisions": 500,
+        "correct": 237,
+        "accuracy": 0.474,
+        "ece_15_hard_label": 0.06959961377187804,
+        "decision_types": {
+          "noul": 200,
+          "choice": 100,
+          "score": 200
+        },
+        "choice_noul_brier": 0.17032572758623613,
+        "choice_noul_soft_accuracy": 0.4355257030591798,
+        "choice_noul_total_variation": 0.2804883098637169,
+        "choice_noul_ece_target_mass": 0.184733519002242,
+        "score_mae": 0.5447639660186543,
+        "score_within_one": 0.91,
+        "score_decisions": 200,
+        "latency_per_case": {
+          "count": 100,
+          "inference_seconds": 192.97167579099187,
+          "mean_ms": 1929.7167579099187,
+          "p50_ms": 1905.8685210038675,
+          "p95_ms": 2224.249958002474
+        }
+      }
+    }
+  },
+  "probes": {
+    "contradictions": [
+      {
+        "group": 0,
+        "a": 0.6028539615182367,
+        "b": 0.5971280086107679,
+        "sum": 1.1999819701290044,
+        "pass": true
+      },
+      {
+        "group": 1,
+        "a": 0.652636616717676,
+        "b": 0.3051516649037695,
+        "sum": 0.9577882816214456,
+        "pass": true
+      },
+      {
+        "group": 2,
+        "a": 0.6128462662398907,
+        "b": 0.6116565523769868,
+        "sum": 1.2245028186168776,
+        "pass": true
+      }
+    ],
+    "routing_variants": [
+      {
+        "id": "stability_0_0",
+        "prediction": "support",
+        "expected": "engineering",
+        "pass": false
+      },
+      {
+        "id": "stability_0_1",
+        "prediction": "technical",
+        "expected": "technical",
+        "pass": true
+      },
+      {
+        "id": "stability_0_2",
+        "prediction": "helpdesk",
+        "expected": "dev_team",
+        "pass": false
+      }
+    ],
+    "grounding": [
+      {
+        "id": "grounding_0",
+        "probability": 0.7942337529665615,
+        "expected": true,
+        "pass": true,
+        "binary_concentration": 0.588467505933123,
+        "confidently_wrong": false
+      },
+      {
+        "id": "grounding_1",
+        "probability": 0.6327289260865326,
+        "expected": true,
+        "pass": true,
+        "binary_concentration": 0.2654578521730653,
+        "confidently_wrong": false
+      },
+      {
+        "id": "grounding_2",
+        "probability": 0.6402028630644496,
+        "expected": false,
+        "pass": false,
+        "binary_concentration": 0.28040572612889925,
+        "confidently_wrong": false
+      },
+      {
+        "id": "grounding_3",
+        "probability": 0.6638037094264877,
+        "expected": true,
+        "pass": true,
+        "binary_concentration": 0.3276074188529754,
+        "confidently_wrong": false
+      },
+      {
+        "id": "grounding_4",
+        "probability": 0.7106865754966648,
+        "expected": true,
+        "pass": true,
+        "binary_concentration": 0.4213731509933296,
+        "confidently_wrong": false
+      }
+    ],
+    "contradictions_passed": 3,
+    "routing_variants_passed": 1,
+    "grounding_passed": 4,
+    "confidently_wrong_grounding": 0
+  },
+  "metric_notes": [
+    "Typed accuracy uses exact supplied gold labels, not any-positive soft-target acceptance.",
+    "ECE uses 15 equal-width confidence bins and hard-label correctness; soft-target ECE for choice/noul is additionally reported.",
+    "Typed Brier/soft accuracy/TV exclude score questions, matching the benchmark evaluator. Score MAE uses supplied numeric gold score.",
+    "Phishing uses a fixed p>=0.5 threshold and tie-aware AUROC. No Platt calibration or threshold fitting performed.",
+    "Probes use the published prompts and thresholds. Binary concentration for overconfidence is derived as abs(2*p-1), not an extra Kev API output.",
+    "Published Jev/Laya figures are context only: no new paired runs, hardware/formatting/calibration may differ, original revisions are not identified by the reference report."
+  ],
+  "validation": {
+    "independent_accuracy_and_pairwise_auroc_check": "passed",
+    "complete_case_ids": true,
+    "typed_accuracy_by_type": {
+      "choice": 0.355,
+      "noul": 0.6383333333333333,
+      "score": 0.35875
+    }
+  }
+}
