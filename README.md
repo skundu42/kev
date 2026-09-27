@@ -2,8 +2,6 @@
 
 A 400M-parameter encoder for decisions over text: choose between options, estimate yes/no probabilities, and score against an ordered rubric.
 
-Kev fine-tunes [Ettin Encoder 400M](https://huggingface.co/jhu-clsp/ettin-encoder-400m) with [Halo](https://github.com/whitecircle/halo). This repository includes data preparation, training, calibration, evaluation, and inference through Python, a JSON CLI, or an authenticated HTTP API.
-
 **Hugging Face:** [Model card and weights](https://huggingface.co/skundu42/kev) · [Prepared dataset](https://huggingface.co/datasets/skundu42/kev-prepared)
 
 ## What it does
@@ -19,8 +17,6 @@ Supply text and criteria at inference time; the model scores the candidates you 
 The default profile supports **2–16 candidates** and **1,024 tokens per encoded prompt/candidate pair**, including instructions and criteria. Overlength requests are rejected rather than truncated.
 
 ## Quickstart
-
-Training and inference run on a Linux CUDA GPU pod with Python 3.12 and the [configured Halo environment](docs/training.md#gpu-and-container-setup). The default training profile targets an RTX 5090 with 32 GB VRAM. Data preparation runs separately on a CPU machine.
 
 **Train a model:** [prepare and publish the dataset](docs/data.md), then [train on Runpod](docs/training.md). The training workflow exports weights, a tokenizer, and calibration settings to `runs/<run-name>/final/`.
 
